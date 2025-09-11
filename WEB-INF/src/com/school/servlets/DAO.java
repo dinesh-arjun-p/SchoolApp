@@ -3,13 +3,27 @@ package com.school.servlets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.net.URI;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
 
-import com.school.model.Notification;
-import com.school.model.RequestAccess;
+
+import com.school.model.*;
 import com.school.utils.*;
 import java.util.*;
 
 public class DAO {
+	String oktaDomain = "https://trial-3599609.okta.com";
+	String apiToken = "00ORTu-qzJWpZOQKmWZxcpJYW-b4yXlVGHkxwBpOAC";
+
+	String ADMIN_GROUP_ID = "00gvak756w9bKkWYG697";
+	String TEACHER_GROUP_ID = "00gvak9np7jMPgp2x697";
+	String STUDENT_GROUP_ID = "00gvakamixXcbpU0D697";
+	
 	
 	public boolean verifyUser(String uname, String password) {
 	    String sql = "SELECT * FROM person WHERE name=? AND pass=?";
@@ -61,25 +75,24 @@ public class DAO {
 	}
 	
 	
-	public UserInfo getUserInfo(String uname, String password) {
+	public UserInfo getUserInfo(String email) {
 	    UserInfo userInfo = null;
 
 	    String sql = "SELECT p.roll_no, p.name, p.pass, r.role_name " +
 	                 "FROM person p JOIN role r ON p.role_id = r.role_id " +
-	                 "WHERE p.name=? AND p.pass=?";
+	                 "WHERE p.email=? ";
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
 
-	        st.setString(1, uname);
-	        st.setString(2, password);
+	        st.setString(1, email);
 	        ResultSet rs = st.executeQuery();
 
 	        if (rs.next()) {
 	            userInfo = new UserInfo();
 	            userInfo.setRollNo(rs.getString("roll_no"));
 	            userInfo.setName(rs.getString("name"));
-	            userInfo.setPassword(rs.getString("pass"));
+	            userInfo.setPass(rs.getString("pass"));
 	            userInfo.setRole(rs.getString("role_name"));
 	        }
 
@@ -90,29 +103,94 @@ public class DAO {
 	}
 
 
-	
-	public boolean createUser(String uname, String password, int roleId) {
-	    String sql = "INSERT INTO person (roll_no, name, pass, role_id) VALUES (?, ?, ?, ?)";
-	    try (Connection con = (Connection) DBUtil.getConnection()) {
-	        
-	        // Generate roll_no first
-	        String rollNo = generateRollNo(roleId, con);
+	public String createOktaUser(String name, String email, String password, int roleId) throws Exception {
+		
+		String jsonBody = "{"
+				+ "\"profile\": {"
+				+ "\"email\": \"" + email + "\","
+				+ "\"login\": \"" + email + "\","
+				+ "\"name\": \"" + name + "\""
+				+ "},"
+				+ "\"credentials\": {"
+				+ "\"password\": { \"value\": \"" + password + "\" }"
+				+ "}"
+				+ "}";
 
-	        try (PreparedStatement st = con.prepareStatement(sql)) {
-	            st.setString(1, rollNo);
-	            st.setString(2, uname);
-	            st.setString(3, password);
-	            st.setInt(4, roleId);
+		URI userUri = new URI(oktaDomain + "/api/v1/users?activate=true");
+		HttpURLConnection conn = (HttpURLConnection) userUri.toURL().openConnection();
+		conn.setRequestMethod("POST");
+		conn.setRequestProperty("Authorization", "SSWS " + apiToken);
+		conn.setRequestProperty("Content-Type", "application/json");
+		conn.setDoOutput(true);
 
-	            int rows = st.executeUpdate();
-	            return rows > 0;
-	        }
+		try (OutputStream os = conn.getOutputStream()) {
+			os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
+		}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    return false;
+		if (conn.getResponseCode() != 200 && conn.getResponseCode() != 201) {
+			String errorResponse;
+			try (InputStream es = conn.getErrorStream()) {
+				errorResponse = new String(es.readAllBytes(), StandardCharsets.UTF_8);
+			}
+			throw new RuntimeException("Okta user creation failed: " + errorResponse);
+		}
+
+		
+		String jsonResponse;
+		try (InputStream is = conn.getInputStream()) {
+			jsonResponse = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+		JSONObject obj = new JSONObject(jsonResponse);
+		String userId = obj.getString("id");
+
+		String groupId = switch (roleId) {
+			case 1 -> ADMIN_GROUP_ID;
+			case 2 -> TEACHER_GROUP_ID;
+			case 3 -> STUDENT_GROUP_ID;
+			default -> null;
+		};
+
+		if (groupId != null) {
+			URI groupUri = new URI(oktaDomain + "/api/v1/groups/" + groupId + "/users/" + userId);
+			HttpURLConnection groupConn = (HttpURLConnection) groupUri.toURL().openConnection();
+			groupConn.setRequestMethod("PUT");
+			groupConn.setRequestProperty("Authorization", "SSWS " + apiToken);
+			int groupResp = groupConn.getResponseCode();
+			if (groupResp != 204) {
+				deleteOktaUser(userId);
+				System.out.println("Warning: failed to add user to group " + groupId + ", response=" + groupResp);
+			}
+		}
+
+		return userId;
 	}
+
+	
+	public boolean createUser(String name, String password, int roleId, String email,String userId) {
+		String sql = "INSERT INTO person (roll_no, name, pass, role_id, email,userid) VALUES (?, ?, ?, ?, ?,?)";
+    try (Connection con = DBUtil.getConnection()) {
+
+        // Generate roll_no first
+        String rollNo = generateRollNo(roleId, con);
+
+        try (PreparedStatement st = con.prepareStatement(sql)) {
+            st.setString(1, rollNo);
+            st.setString(2, name);
+            st.setString(3, password);
+            st.setInt(4, roleId);
+            st.setString(5, email);
+			st.setString(6,userId);
+
+            int rows = st.executeUpdate();
+            return rows > 0;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+		return false;
+	}
+
 
 	
 	
@@ -167,7 +245,7 @@ public class DAO {
 	public UserInfo getUserByRollNo(String rollNo) {
 	    UserInfo user = null;
 
-	    String sql = "SELECT p.roll_no, p.name, p.pass, r.role_name " +
+	    String sql = "SELECT p.roll_no,p.userid, p.name, p.pass, p.email,r.role_name " +
 	                 "FROM person p " +
 	                 "JOIN role r ON p.role_id = r.role_id " +
 	                 "WHERE p.roll_no = ?";
@@ -182,8 +260,10 @@ public class DAO {
 	                user = new UserInfo();
 	                user.setRollNo(rs.getString("roll_no"));
 	                user.setName(rs.getString("name"));
-	                user.setPassword(rs.getString("pass"));
+	                user.setPass(rs.getString("pass"));
 	                user.setRole(rs.getString("role_name"));
+					user.setUserId(rs.getString("userid"));
+					user.setEmail(rs.getString("email"));
 
 	               
 	            }
@@ -194,6 +274,22 @@ public class DAO {
 	    }
 
 	    return user;
+	}
+	
+	public String getOktaUserId(String rollNo){
+		String sql="Select userId from person where roll_no=?";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement st=con.prepareStatement(sql)){
+			st.setString(1,rollNo);
+			ResultSet rs=st.executeQuery();
+			if(rs.next()){
+				return rs.getString("userid");
+			}
+		}
+		catch(Exception e ){
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public boolean deleteUser(String rollNo) {
@@ -207,6 +303,76 @@ public class DAO {
 	    }
 	    return false;
 	}
+	
+	public void insertRollBack(UserInfo user){
+		String sql="insert into person (roll_no,name,userid,pass,email,role_id)values(?,?,?,?,?,?)";
+		try (Connection con = DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+	        st.setString(1, user.getRollNo());
+			st.setString(2,user.getName());
+			st.setString(3,user.getUserId());
+			st.setString(4,user.getPass());
+			st.setString(5,user.getEmail());
+			st.setInt(6,user.getRoleId());
+			
+	        st.executeUpdate();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public boolean deleteOktaUser(String userId) {
+
+		try {
+			// 1. Deactivate user
+			URL deactivateUrl = URI.create(oktaDomain + "/api/v1/users/" + userId + "/lifecycle/deactivate").toURL();
+			HttpURLConnection deactivateConn = (HttpURLConnection) deactivateUrl.openConnection();
+			deactivateConn.setRequestMethod("POST");
+			deactivateConn.setRequestProperty("Authorization", "SSWS " + apiToken);
+			deactivateConn.setRequestProperty("Accept", "application/json");
+			deactivateConn.setDoOutput(true);
+
+			int deactivateResponse = deactivateConn.getResponseCode();
+			System.out.println("Deactivate Response: " + deactivateResponse);
+
+			if (deactivateResponse != 200 && deactivateResponse != 204) {
+				try (InputStream es = deactivateConn.getErrorStream()) {
+					if (es != null) {
+						System.err.println("Deactivate Error: " + new String(es.readAllBytes(), StandardCharsets.UTF_8));
+					}
+				}
+				return false;
+			}
+
+			// 2. Delete user
+			URL deleteUrl = URI.create(oktaDomain + "/api/v1/users/" + userId).toURL();
+			HttpURLConnection deleteConn = (HttpURLConnection) deleteUrl.openConnection();
+			deleteConn.setRequestMethod("DELETE");
+			deleteConn.setRequestProperty("Authorization", "SSWS " + apiToken);
+			deleteConn.setRequestProperty("Accept", "application/json");
+
+			int deleteResponse = deleteConn.getResponseCode();
+			System.out.println("Delete Response: " + deleteResponse);
+
+			if (deleteResponse != 200 && deleteResponse != 204) {
+				try (InputStream es = deleteConn.getErrorStream()) {
+					if (es != null) {
+						System.err.println("Delete Error: " + new String(es.readAllBytes(), StandardCharsets.UTF_8));
+					}
+				}
+				return false;
+			}
+
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+
+
 
 	public boolean createRequest(String department, String rollNo, String date) {
 	    String sql = "INSERT INTO request_access (request_date, department, requested_by) VALUES (?, ?, ?)";

@@ -9,25 +9,18 @@
 <body>
 	<%
 	session = request.getSession(false);
-    if (session != null && session.getAttribute("uname") != null) {
+    if (session != null && session.getAttribute("role") != null) {
         response.sendRedirect("Home.jsp");
         return;
     }
 	%>
-	<form action="login" method="post">
-		Enter Username<input type="text" name="uname"><br>
-		
-		Enter Password<input type="password" name="pass"><br>
-		<input type="submit" value="login">
-	</form>
-	<% 
-    String error = request.getParameter("error");
-    if (error != null) {
-	%>
-    <p style="color:red;"><%= error %></p>
-	<% 
-    }
-	%>
+	
+
+	<a href="https://trial-3599609.okta.com/oauth2/default/v1/authorize?client_id=0oavak3jfuTqZwEss697&response_type=code&scope=openid%20profile%20email%20groups&redirect_uri=http://localhost:8080/School/callback&state=12345">
+    Login with Okta
+</a>
+
+
 	
 </body>
 </html>

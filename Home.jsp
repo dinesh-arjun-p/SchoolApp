@@ -13,21 +13,34 @@
     response.setDateHeader("Expires", 0); 
 
     session = request.getSession(false);
-    if (session == null || session.getAttribute("uname") == null) {
-        response.sendRedirect("login.jsp");
+	if(session==null ||!session.getAttributeNames().hasMoreElements()){
+		response.sendRedirect("login.jsp");
+	}
+    if ( session.getAttribute("role") == null) {
+%>
+        <h2>No role assigned. Please login again or contact administrator.</h2>
+        <a href="login.jsp">Back to Login</a>
+<%
         return;
     }
+
     String role = (String) session.getAttribute("role");
-	System.out.println(role);
-	
-	if ("Admin".equalsIgnoreCase(role)) {
-	    request.getRequestDispatcher("SuperAdminServlet").forward(request, response);
-	} else if ("Teacher".equalsIgnoreCase(role)) {
-	    request.getRequestDispatcher("TeacherHomeServlet").forward(request, response);
-	} else if ("Student".equalsIgnoreCase(role)) {
-	    request.getRequestDispatcher("StudentHomeServlet").forward(request, response);
-	}
+    String email = (String) session.getAttribute("email");
+    if ("Admin".equalsIgnoreCase(role)) {
+        request.getRequestDispatcher("SuperAdminServlet").forward(request, response);
+    } else if ("Teacher".equalsIgnoreCase(role)) {
+        request.getRequestDispatcher("TeacherHomeServlet").forward(request, response);
+    } else if ("Student".equalsIgnoreCase(role)) {
+        request.getRequestDispatcher("StudentHomeServlet").forward(request, response);
+    } else {
 %>
-    
+        <h2>Unknown role: <%= role %><%= email %></h2>
+		<%
+		
+		session.invalidate();%>
+        <a href="login.jsp">Back to Login</a>
+<%
+    }
+%>
 </body>
 </html>

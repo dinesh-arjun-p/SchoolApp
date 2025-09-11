@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" isELIgnored="false"%>
 <%@ page import="java.util.List" %>
-<%@ page import="com.school.servlets.UserInfo" %> 
+<%@ page import="com.school.model.UserInfo" %> 
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,12 +16,14 @@
     response.setDateHeader("Expires", 0); 
 
     session = request.getSession(false);
-    if (session == null || session.getAttribute("uname") == null) {
+    if (session == null || session.getAttribute("rollNo") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
     String role = (String) session.getAttribute("role");
-    
+    String uname = (String) session.getAttribute("uname");
+	String email = (String) session.getAttribute("email");
+	String rollNo = (String) session.getAttribute("rollNo");
     
     String msg = request.getParameter("msg");
     String error = request.getParameter("error");
@@ -42,7 +44,7 @@
     <input type="submit" value="logout">
 </form>
 
-Welcome to Zoho School Mr ${uname}
+Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
 <br>
 
 

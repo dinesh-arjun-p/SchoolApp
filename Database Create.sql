@@ -13,15 +13,15 @@ create table person(
 	 roll_no varchar(50) primary key,
      name varchar(100) not null,
      pass varchar(100) not null,
+     email VARCHAR(255)  UNIQUE,
      role_id int,
      foreign key (role_id)references role(role_id)
      on delete set null
      on update cascade
 );
-insert into person(roll_no,name,pass,role_id)
-values('zohoAdmin1','Admin','admin',1),
-('zohoTeacher1','Teacher','teacher',2),
-('zohoStudent','Student','student',3);
+insert into person(roll_no,name,pass,email,role_id)
+values('zohoAdmin1','Admin','admin','dinesharjun.ec22@bitsathy.ac.in',1);
+
 
 drop table request_access;
 CREATE TABLE request_access (
@@ -57,8 +57,8 @@ create table notification(
     on update cascade
 );
 
-drop table user_login;
-create table user_login(
+drop table login_history;
+create table login_history(
 	id int auto_increment primary key,
     username varchar(100) not null,
     login_time datetime default current_timestamp,
@@ -67,3 +67,7 @@ create table user_login(
 	on delete cascade
     on update cascade
 );
+
+set sql_safe_updates=0;
+delete from person where name='Student';
+select * from person;

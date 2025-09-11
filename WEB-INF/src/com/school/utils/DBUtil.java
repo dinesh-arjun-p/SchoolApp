@@ -10,7 +10,6 @@ public class DBUtil {
 
     static {
         try {
-            // MySQL 8.x driver class
             Class.forName("com.mysql.cj.jdbc.Driver"); 
         } catch (Exception e) {
             e.printStackTrace();

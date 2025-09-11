@@ -1,5 +1,6 @@
 package com.school.servlets;
 
+import com.school.model.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,7 +25,6 @@ public class SuperAdminServlet extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
-
         DAO dao = new DAO();
         List<UserInfo> users = dao.getAllUsers();
 

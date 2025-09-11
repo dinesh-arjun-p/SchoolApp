@@ -1,11 +1,5 @@
 package com.school.servlets;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,45 +7,44 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+
 @WebServlet("/createUser")
 public class CreateUserServlet extends HttpServlet {
 
     @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, java.io.IOException {
+
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("uname") == null) {
-            response.sendRedirect("login.jsp");
+        if (session == null || session.getAttribute("role") == null ||
+                !"admin".equalsIgnoreCase((String) session.getAttribute("role"))) {
+            response.sendRedirect("Home.jsp?error=Access+Denied");
             return;
         }
 
-        String role = (String) session.getAttribute("role");
-        if (!"admin".equalsIgnoreCase(role)) {
-            response.sendRedirect("Home.jsp?error=Access+Denied"); 
-            return;
-        }
-
-        String uname = request.getParameter("uname");
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
         String password = request.getParameter("pass");
-        String roleIdStr = request.getParameter("role_id");
+        int roleId = Integer.parseInt(request.getParameter("role_id"));
 
         try {
-            int roleId = Integer.parseInt(roleIdStr);
-            DAO dao = new DAO();
+			DAO dao = new DAO();
+			String userId = dao.createOktaUser(name, email, password, roleId);
 
-            boolean success = dao.createUser(uname, password, roleId);
+			// Save to DB
+			
+			boolean success = dao.createUser(name, password, roleId, email, userId);
 
-            if (success) {
-                response.sendRedirect("Home.jsp?msg=User+created+successfully");
-            } else {
-                response.sendRedirect("Home.jsp?error=Failed+to+create+user");
-            }
+			if (success) {
+				response.sendRedirect("Home.jsp?msg=User+created+successfully");
+			} else {
+				dao.deleteOktaUser(userId);
+				response.sendRedirect("Home.jsp?error=DB+Insert+failed");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("Home.jsp?error=" + e.getMessage());
+		}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("Home.jsp?error=" + e.getMessage());
-        }
     }
 }
-	

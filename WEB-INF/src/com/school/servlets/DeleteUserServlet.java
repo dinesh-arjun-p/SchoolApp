@@ -1,6 +1,6 @@
 package com.school.servlets;
 
-
+import com.school.model.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -31,12 +31,23 @@ public class DeleteUserServlet extends HttpServlet {
         String rollNo = request.getParameter("rollNo");
 
         DAO dao = new DAO();
+		String oktaUserId = dao.getOktaUserId(rollNo); 
+		UserInfo user=dao.getUserByRollNo(rollNo);
         boolean deleted = dao.deleteUser(rollNo);
 
-        if (deleted) {
-            response.sendRedirect("Home.jsp?msg=User+deleted+successfully");
-        } else {
-            response.sendRedirect("Home.jsp?error=Failed+to+delete+user");
-        }
+		if (deleted) {
+			
+			boolean oktaDeleted = dao.deleteOktaUser(oktaUserId);
+
+			if (oktaDeleted) {
+				response.sendRedirect("Home.jsp?msg=User+deleted+successfully");
+			} else {
+				dao.insertRollBack(user);
+				response.sendRedirect("Home.jsp?error=Failed+to+delete+user+from+Okta");
+			}
+		} else {
+			response.sendRedirect("Home.jsp?error=Failed+to+delete+user+locally");
+		}
+
     }
 }

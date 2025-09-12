@@ -25,6 +25,33 @@ public class DAO {
 	String STUDENT_GROUP_ID = "00gvakamixXcbpU0D697";
 	
 	
+	public String findRoleName(int roleId){
+		switch(roleId){
+			case 1:
+				return "Admin";
+			case 2:
+				return "Teacher";
+			case 3:
+				return "Student";
+			default:
+				return "Guests";
+		}
+	}
+	
+	public int findRoleId(String roleName){
+		switch(roleName){
+			case "Admin":
+				return 1;
+			case "Teacher":
+				return 2;
+			case "Student":
+				return 3;
+			default:
+				return -1;
+		}
+	}
+	
+	
 	public boolean verifyUser(String uname, String password) {
 	    String sql = "SELECT * FROM person WHERE name=? AND pass=?";
 	    try (Connection con = DBUtil.getConnection();
@@ -48,7 +75,7 @@ public class DAO {
 	
 	
 	public void recordLogin(String rollNo) {
-	    String sql = "INSERT INTO login_history (username, login_time) VALUES (?, NOW())";
+	    String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'Login')";
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
 
@@ -60,8 +87,39 @@ public class DAO {
 	    }
 	}
 	public void recordLogout(String rollNo) {
-	    String sql = "UPDATE login_history SET logout_time = NOW() " +
-	                 "WHERE username=? ORDER BY id DESC LIMIT 1";
+	    String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'Logout')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, rollNo);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	
+	public void recordCreateUser(String rollNo,String userName ,int roleId){
+		String roleName=findRoleName(roleId);
+		String event="Created User "+userName +"as"+roleName;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, rollNo);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void recordDeleteUser(String rollNo,String userName){
+		String event="Deleted User "+userName ;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
 
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {

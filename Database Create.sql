@@ -11,6 +11,7 @@ insert into role (role_name) values ('SuperAdmin'),('Teacher'),('Student');
 drop table person;
 create table person(
 	 roll_no varchar(50) primary key,
+     userid varchar(50) unique,
      name varchar(100) not null,
      pass varchar(100) not null,
      email VARCHAR(255)  UNIQUE,
@@ -58,11 +59,11 @@ create table notification(
 );
 
 drop table login_history;
-create table login_history(
+create table audit_logs(
 	id int auto_increment primary key,
     username varchar(100) not null,
-    login_time datetime default current_timestamp,
-    logout_time datetime null,
+    event varchar(100) not null,
+    time datetime default current_timestamp,
     constraint fk_user_login_roll_no foreign key (username) references person(roll_no)
 	on delete cascade
     on update cascade

@@ -40,6 +40,7 @@ public class DeleteUserServlet extends HttpServlet {
 			boolean oktaDeleted = dao.deleteOktaUser(oktaUserId);
 
 			if (oktaDeleted) {
+				dao.recordDeleteUser(session.getAttribute("rollNo").toString(),user.getRollNo());
 				response.sendRedirect("Home.jsp?msg=User+deleted+successfully");
 			} else {
 				dao.insertRollBack(user);

@@ -36,6 +36,7 @@ public class CreateUserServlet extends HttpServlet {
 			boolean success = dao.createUser(name, password, roleId, email, userId);
 
 			if (success) {
+				dao.recordCreateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() ,roleId);
 				response.sendRedirect("Home.jsp?msg=User+created+successfully");
 			} else {
 				dao.deleteOktaUser(userId);

@@ -70,67 +70,6 @@ public class DAO {
 	    }
 	    return false;
 	}
-
-
-	
-	
-	public void recordLogin(String rollNo) {
-	    String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'Login')";
-	    try (Connection con = (Connection) DBUtil.getConnection();
-	         PreparedStatement st = con.prepareStatement(sql)) {
-
-	        st.setString(1, rollNo);
-	        st.executeUpdate();
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-	public void recordLogout(String rollNo) {
-	    String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'Logout')";
-
-	    try (Connection con = (Connection) DBUtil.getConnection();
-	         PreparedStatement st = con.prepareStatement(sql)) {
-
-	        st.setString(1, rollNo);
-	        st.executeUpdate();
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-	
-	
-	public void recordCreateUser(String rollNo,String userName ,int roleId){
-		String roleName=findRoleName(roleId);
-		String event="Created User "+userName +"as"+roleName;
-		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
-
-	    try (Connection con = (Connection) DBUtil.getConnection();
-	         PreparedStatement st = con.prepareStatement(sql)) {
-
-	        st.setString(1, rollNo);
-	        st.executeUpdate();
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-	
-	public void recordDeleteUser(String rollNo,String userName){
-		String event="Deleted User "+userName ;
-		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
-
-	    try (Connection con = (Connection) DBUtil.getConnection();
-	         PreparedStatement st = con.prepareStatement(sql)) {
-
-	        st.setString(1, rollNo);
-	        st.executeUpdate();
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
 	
 	
 	public UserInfo getUserInfo(String email) {
@@ -603,5 +542,31 @@ public class DAO {
 	    return requests;
 	}
 
+	public List<Logs> getAllLogs() {
+	    List<Logs> logs = new ArrayList<>();
+	    String sql = "SELECT * FROM audit_logs ORDER BY id DESC";
+
+	    try (Connection con = DBUtil.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            Logs req = new Logs();
+	            req.setId(rs.getInt("id"));
+	            req.setUserName(rs.getString("username"));
+	            req.setEvent(rs.getString("event"));
+	            req.setReg(rs.getString("reg"));
+	            req.setDate(rs.getDate("log_date"));
+	            req.setTime(rs.getTime("log_time"));
+
+	            logs.add(req);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return logs;
+	}
 
 }

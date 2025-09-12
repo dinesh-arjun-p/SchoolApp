@@ -25,8 +25,8 @@ public class LogoutServlet extends HttpServlet {
             // Record logout in DB
             String rollNo = (String) session.getAttribute("rollNo");
             if (rollNo != null) {
-                DAO dao = new DAO();
-                dao.recordLogout(rollNo);
+				Audit_LogsDAO al=new Audit_LogsDAO();
+                al.recordLogout(rollNo);
             }
 
             // Fetch ID token (saved in CallbackServlet)

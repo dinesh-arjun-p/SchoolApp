@@ -97,11 +97,12 @@ public class CallBackServlet extends HttpServlet {
             session.setAttribute("email", username);
             session.setAttribute("role", role);
 			DAO ld=new DAO();
+			Audit_LogsDAO al=new Audit_LogsDAO();
 			UserInfo userInfo = ld.getUserInfo(username);
 		    if (userInfo != null) {
 		        session.setAttribute("rollNo", userInfo.getRollNo());
 		        session.setAttribute("uname", userInfo.getName());
-		        ld.recordLogin( userInfo.getRollNo());
+		        al.recordLogin( userInfo.getRollNo());
 		    } 
             response.sendRedirect("Home.jsp");
 

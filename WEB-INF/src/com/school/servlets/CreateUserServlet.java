@@ -29,6 +29,7 @@ public class CreateUserServlet extends HttpServlet {
 
         try {
 			DAO dao = new DAO();
+			Audit_LogsDAO al=new Audit_LogsDAO();
 			String userId = dao.createOktaUser(name, email, password, roleId);
 
 			// Save to DB
@@ -36,7 +37,7 @@ public class CreateUserServlet extends HttpServlet {
 			boolean success = dao.createUser(name, password, roleId, email, userId);
 
 			if (success) {
-				dao.recordCreateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() ,roleId);
+				al.recordCreateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() ,roleId);
 				response.sendRedirect("Home.jsp?msg=User+created+successfully");
 			} else {
 				dao.deleteOktaUser(userId);

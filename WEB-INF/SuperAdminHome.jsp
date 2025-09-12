@@ -1,13 +1,17 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" isELIgnored="false"%>
-<%@ page import="java.util.List" %>
-<%@ page import="com.school.model.UserInfo" %> 
+<%@ page import="java.util.*" %>
+<%@ page import="com.school.model.*" %> 
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Zoho School</title>
-
+<style>
+	table,th,td{
+		border: 1px solid black;
+	}
+</style>
 </head>
 <body bgcolor="cyan">
 <%
@@ -59,7 +63,7 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
 
 <h2>All Users</h2>
 
-<table>
+<table style="border: 1px solid black;">
     <tr>
         <th>Roll No</th>
         <th>Name</th>
@@ -81,6 +85,36 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
                 <button type="submit">Delete</button>
             </form>
         </td>
+    </tr>
+    <%
+            }
+        }
+    %>
+</table>
+
+<h2>All Audit Logs</h2>
+
+<table >
+    <tr>
+        <th>Id</th>
+        <th>UserName</th>
+        <th>Event</th>
+        <th>Reg</th>
+		<th>Date</th>
+		<th>Time</th>
+    </tr>
+    <%
+        List<Logs> logs = (List<Logs>) request.getAttribute("logs");
+        if (logs != null) {
+            for (Logs log : logs) {
+    %>
+    <tr>
+        <td><%= log.getId() %></td>
+        <td><%= log.getUserName() %></td>
+        <td><%= log.getEvent() %></td>
+        <td><%= log.getReg() %></td>
+		<td><%= log.getDate() %></td>
+		<td><%= log.getTime() %></td>
     </tr>
     <%
             }

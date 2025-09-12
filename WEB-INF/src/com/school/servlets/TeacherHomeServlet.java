@@ -18,7 +18,7 @@ public class TeacherHomeServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        if (session == null ||  !"Teacher".equalsIgnoreCase((String) session.getAttribute("role")) {
+        if (session == null ||  !"Teacher".equalsIgnoreCase((String) session.getAttribute("role"))) {
             response.sendRedirect("login.jsp");
             return;
         }

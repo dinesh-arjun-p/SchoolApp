@@ -17,7 +17,9 @@ public class RequestAccessServlet extends HttpServlet {
         String department = req.getParameter("department");
         String requestDate = req.getParameter("request_date"); 
         DAO dao = new DAO();
+		Audit_LogsDAO al=new Audit_LogsDAO();
         if (dao.createRequest(department, rollNo, requestDate)) {
+			al.recordCreateRequest(rollNo,department);
             resp.sendRedirect("Home.jsp?msg=Request Submitted");
         } else {
             resp.sendRedirect("Home.jsp?error=Failed to Submit");

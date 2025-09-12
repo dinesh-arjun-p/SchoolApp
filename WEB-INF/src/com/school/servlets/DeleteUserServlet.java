@@ -31,6 +31,7 @@ public class DeleteUserServlet extends HttpServlet {
         String rollNo = request.getParameter("rollNo");
 
         DAO dao = new DAO();
+		Audit_LogsDAO al=new Audit_LogsDAO();
 		String oktaUserId = dao.getOktaUserId(rollNo); 
 		UserInfo user=dao.getUserByRollNo(rollNo);
         boolean deleted = dao.deleteUser(rollNo);
@@ -40,7 +41,7 @@ public class DeleteUserServlet extends HttpServlet {
 			boolean oktaDeleted = dao.deleteOktaUser(oktaUserId);
 
 			if (oktaDeleted) {
-				dao.recordDeleteUser(session.getAttribute("rollNo").toString(),user.getRollNo());
+				al.recordDeleteUser(session.getAttribute("rollNo").toString(),user.getRollNo());
 				response.sendRedirect("Home.jsp?msg=User+deleted+successfully");
 			} else {
 				dao.insertRollBack(user);

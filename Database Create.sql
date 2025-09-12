@@ -58,17 +58,19 @@ create table notification(
     on update cascade
 );
 
-drop table login_history;
-create table audit_logs(
-	id int auto_increment primary key,
-    username varchar(100) not null,
-    event varchar(100) not null,
-    time datetime default current_timestamp,
-    constraint fk_user_login_roll_no foreign key (username) references person(roll_no)
-	on delete cascade
-    on update cascade
-);
+drop table  if exists audit_logs;
+	create table audit_logs(
+		id int auto_increment primary key,
+		username varchar(100) not null,
+		event varchar(100) not null,
+		time datetime default current_timestamp,
+		constraint fk_user_login_roll_no foreign key (username) references person(roll_no)
+		on delete cascade
+		on update cascade
+	);
 
 set sql_safe_updates=0;
 delete from person where name='Student';
 select * from person;
+select * from audit_logs;
+delete from audit_logs;

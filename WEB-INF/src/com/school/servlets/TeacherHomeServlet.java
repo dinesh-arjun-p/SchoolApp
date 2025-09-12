@@ -1,6 +1,6 @@
 package com.school.servlets;
 
-import com.school.model.RequestAccess;
+import com.school.model.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

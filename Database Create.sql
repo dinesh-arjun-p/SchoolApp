@@ -24,7 +24,7 @@ insert into person(roll_no,name,pass,email,role_id)
 values('zohoAdmin1','Admin','admin','dinesharjun.ec22@bitsathy.ac.in',1);
 
 
-drop table request_access;
+drop table if exists request_access;
 CREATE TABLE request_access (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     request_date DATE NOT NULL,
@@ -32,6 +32,7 @@ CREATE TABLE request_access (
     requested_by VARCHAR(50) NOT NULL,
     status ENUM('Pending','Approved','Rejected') DEFAULT 'Pending',
     reviewed_by VARCHAR(50) ,
+    seen enum('unseen','seen')default 'unseen',
     CONSTRAINT fk_requested_by FOREIGN KEY (requested_by) REFERENCES person(roll_no)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
@@ -59,18 +60,27 @@ create table notification(
 );
 
 drop table  if exists audit_logs;
-	create table audit_logs(
-		id int auto_increment primary key,
-		username varchar(100) not null,
-		event varchar(100) not null,
-		time datetime default current_timestamp,
-		constraint fk_user_login_roll_no foreign key (username) references person(roll_no)
-		on delete cascade
-		on update cascade
-	);
+CREATE TABLE audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    event VARCHAR(100) NOT NULL,
+    reg VARCHAR(100) DEFAULT '',
+    log_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+    log_time TIME NOT NULL DEFAULT (CURRENT_TIME),
+    CONSTRAINT fk_user_login_roll_no 
+        FOREIGN KEY (username) REFERENCES person(roll_no)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
 
 set sql_safe_updates=0;
 delete from person where name='Student';
 select * from person;
 select * from audit_logs;
 delete from audit_logs;
+
+select * from request_access;
+
+update  request_access set seen='seen' WHERE request_id=1;
+

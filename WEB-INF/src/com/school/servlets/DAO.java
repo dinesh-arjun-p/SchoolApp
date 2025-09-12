@@ -444,30 +444,17 @@ public class DAO {
 	
 	public boolean updateRequestStatus(int requestId, String status, String reviewedBy) {
 	    String updateSql = "UPDATE request_access SET status=?, reviewed_by=? WHERE request_id=?";
-	    String insertSql = "INSERT INTO notification (student_roll_no, department, reviewed_by, status, request_date) " +
-	                       "SELECT requested_by, department, ?, ?, request_date " +
-	                       "FROM request_access WHERE request_id=?";
 
 	    try (Connection con = DBUtil.getConnection()) {
 	        // turn off auto-commit for transaction safety
 	        con.setAutoCommit(false);
 
-	        // 1. Update request_access
 	        try (PreparedStatement ps = con.prepareStatement(updateSql)) {
 	            ps.setString(1, status);      // Approved / Rejected
 	            ps.setString(2, reviewedBy);  // teacher/admin roll no
 	            ps.setInt(3, requestId);
 	            ps.executeUpdate();
 	        }
-
-	        // 2. Insert into notification (also fetches request_date)
-	        try (PreparedStatement ps = con.prepareStatement(insertSql)) {
-	            ps.setString(1, reviewedBy);  // reviewed_by
-	            ps.setString(2, status);      // Approved / Rejected
-	            ps.setInt(3, requestId);
-	            ps.executeUpdate();
-	        }
-
 	        con.commit();  // commit both queries together
 	        return true;
 
@@ -480,15 +467,15 @@ public class DAO {
 
 	public List<Notification> getNotificationsForStudent(String rollNo) {
 	    List<Notification> list = new ArrayList<>();
-	    String sql = "SELECT * FROM notification WHERE student_roll_no=?";
+	    String sql = "SELECT * FROM request_access WHERE requested_by=? and seen='unseen' and status <> 'Pending'";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql)) {
 	        ps.setString(1, rollNo);
 	        try (ResultSet rs = ps.executeQuery()) {
 	            while (rs.next()) {
 	                Notification n = new Notification();
-	                n.setNotificationId(rs.getInt("notification_id"));
-	                n.setStudentRollNo(rs.getString("student_roll_no"));
+	                n.setNotificationId(rs.getInt("request_id"));
+	                n.setStudentRollNo(rs.getString("requested_by"));
 	                n.setDepartment(rs.getString("department"));
 	                n.setReviewedBy(rs.getString("reviewed_by"));
 	                n.setStatus(rs.getString("status"));
@@ -503,11 +490,11 @@ public class DAO {
 	}
 
 	
-	public boolean deleteNotification(int notificationId) {
-	    String sql = "DELETE FROM notification WHERE notification_id=?";
+	public boolean deleteNotification(int requestId) {
+	    String sql = "update  request_access set seen='seen' WHERE request_id=?";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql)) {
-	        ps.setInt(1, notificationId);
+	        ps.setInt(1, requestId);
 	        return ps.executeUpdate() > 0;
 	    } catch (Exception e) {
 	        e.printStackTrace();

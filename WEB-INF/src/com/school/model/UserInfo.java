@@ -9,6 +9,8 @@ public class UserInfo {
 	 private String email;
     private String role;
     private int role_id;
+	private String phone_number;
+	private int className;
 	
 	public UserInfo setUserInfo(ResultSet rs)throws SQLException{
 		UserInfo user=new UserInfo();
@@ -18,6 +20,8 @@ public class UserInfo {
 		user.setRole(rs.getString("role_name"));
 		user.setUserId(rs.getString("userid"));
 		user.setEmail(rs.getString("email"));
+		user.setPhoneNumber(rs.getString("phone_number"));
+		user.setClassName(rs.getInt("class"));
 		return user;
 	}
     // getters & setters
@@ -58,5 +62,11 @@ public class UserInfo {
 	}
 	
 	public int getRoleId() { return role_id; }
+	
+	public String getPhoneNumber() { return phone_number; }
+    public void setPhoneNumber(String phone_number) { this.phone_number = phone_number; }
+	
+	public int getClassName() { return className; }
+    public void setClassName(int className) { this.className = className; }
   
 }

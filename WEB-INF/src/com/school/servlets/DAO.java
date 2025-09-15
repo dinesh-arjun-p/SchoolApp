@@ -74,8 +74,7 @@ public class DAO {
 	public UserInfo getUserInfo(String email) {
 	    UserInfo userInfo = null;
 
-	    String sql = "SELECT p.roll_no, p.name, p.pass, r.role_name " +
-	                 "FROM person p JOIN role r ON p.role_id = r.role_id " +
+	    String sql = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id " +
 	                 "WHERE p.email=? ";
 
 	    try (Connection con = DBUtil.getConnection();

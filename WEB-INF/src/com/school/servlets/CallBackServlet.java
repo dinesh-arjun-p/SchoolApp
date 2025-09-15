@@ -102,6 +102,8 @@ public class CallBackServlet extends HttpServlet {
 		    if (userInfo != null) {
 		        session.setAttribute("rollNo", userInfo.getRollNo());
 		        session.setAttribute("uname", userInfo.getName());
+				session.setAttribute("phone_number",userInfo.getPhoneNumber());
+				session.setAttribute("class",userInfo.getClassName());
 		        al.recordLogin( userInfo.getRollNo());
 		    } 
             response.sendRedirect("Home.jsp");

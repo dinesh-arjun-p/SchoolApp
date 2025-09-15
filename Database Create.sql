@@ -31,10 +31,10 @@ create table rule(
 	rule_id int auto_increment primary key,
     attribute varchar(100),
     operator varchar(100),
-    value varchar(100),
+    status_limit int,
     priority int not null unique
 );
-insert into rule (rule_id,priority)values(1,-1);
+insert into rule (rule_id,status_limit,priority)values(1,1,-1);
 
 
 drop table if exists request_access;
@@ -74,28 +74,28 @@ select* from notification;
 drop table if exists rule_work_flow;
 create table rule_work_flow(
 	rule_id int ,
-    rule_order int not null,
 	incharge varchar(100) ,
     role enum('Reviewer','Executer'),
     constraint fk_incharge foreign key (incharge) references person (roll_no)
 		on delete set null
         on update cascade,
-	  CONSTRAINT uq_rule UNIQUE (rule_id, rule_order),
      constraint fk_rule_id_rule_work_flow foreign key(rule_id) references rule (rule_id)
-		on delete set null
+		on delete 	cascade
         on update  cascade
 );
-insert into rule_work_flow (rule_id,rule_order,incharge,role)
-values(1,1,'zohoTeacher1','Reviewer'),
-(1,2,'zohoTeacher1','Executer');
+insert into rule_work_flow (rule_id,incharge,role)
+values(1,'zohoTeacher1','Reviewer'),
+(1,'zohoTeacher1','Executer');
 
+
+drop table if exists rule_condition;
 CREATE TABLE rule_condition (
-    condition_id INT AUTO_INCREMENT PRIMARY KEY,
     rule_id INT,
     attribute VARCHAR(100) NOT NULL,
     operator VARCHAR(10) NOT NULL,
     value VARCHAR(100) NOT NULL,
-    logic_op ENUM('AND','OR') DEFAULT 'AND',  -- relation to previous condition
+    logic_op ENUM('AND','OR') DEFAULT 'AND',  
+    order_id int not null,
     CONSTRAINT fk_rule FOREIGN KEY (rule_id) REFERENCES rule(rule_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE

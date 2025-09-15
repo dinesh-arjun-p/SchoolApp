@@ -7,7 +7,12 @@
     <input type="submit" value="logout">
 </form>
 <br>
-<h2>Welcome Student, <%= session.getAttribute("uname") %></h2>
+<h2>Welcome Student, <br>Roll No=<%= session.getAttribute("rollNo") %>
+<br> Name=<%= session.getAttribute("uname") %>
+<br> Email=<%= session.getAttribute("email") %>
+<br> role_name= <%= session.getAttribute("role") %>
+<br> phone number= <%= session.getAttribute("phone_number") %>
+<br> class= <%= session.getAttribute("class") %></h2>
 
 <!-- Request Form -->
 <form action="requestAccess" method="post">
@@ -15,7 +20,6 @@
     <select name="action" id="action" required>
         <option value="">-- Select Action --</option>
         <option value="changePhoneNumber">Change Phone Number</option>
-        <option value="changeClass">Change Class</option>
         <option value="changeName">Change Name</option>
     </select>
     <br><br>
@@ -77,6 +81,7 @@
             <td><%= r.getAction() %></td>
             <td><% if(r.getRole()=="Executer"){out.print("Execution Remaining");}
 					else {out.print(r.getStatus()+" Reviewed");}%></td>
+			<% DAO dao=new DAO();dao.getAllReviewer();%>
             <td><%= r.getAssignedTo()%></td>
         </tr>
     <%

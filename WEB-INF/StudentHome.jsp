@@ -11,10 +11,20 @@
 
 <!-- Request Form -->
 <form action="requestAccess" method="post">
-    Request Date: <input type="date" name="request_date" required><br>
-    Department: <input type="text" name="department" required><br>
+    <label for="action">Action:</label>
+    <select name="action" id="action" required>
+        <option value="">-- Select Action --</option>
+        <option value="changePhoneNumber">Change Phone Number</option>
+        <option value="changeClass">Change Class</option>
+        <option value="changeName">Change Name</option>
+    </select>
+    <br><br>
+
+    <!-- Fields for new values -->
+    <input type="text" name="action_value"><br>
     <button type="submit">Request</button>
 </form>
+
 
 
 
@@ -26,7 +36,7 @@
         for (Notification n : notifications) {
 %>
    <p>
-    Your request for <b><%= n.getDepartment() %></b> on <b><%= n.getRequest_date() %></b> has been 
+    Your request for <b><%= n.getAction() %></b> on <b><%= n.getRequestDate() %></b> has been 
     <b><%= n.getStatus() %></b> by <b><%= n.getReviewedBy() %></b>.
     
     <form action="DeleteNotification" method="post" style="display:inline; margin-left:5px;">
@@ -34,7 +44,6 @@
         <button type="submit" style="border:none; background:none; cursor:pointer;">x</button>
     </form>
 </p>
-
 
 <%
         }
@@ -47,15 +56,15 @@
 
 
 
-<!-- Show Past Requests -->
 <h3>Your Requests</h3>
 <table border="1">
     <tr>
         <th>ID</th>
         <th>Date</th>
-        <th>Department</th>
+        <th>Action</th>
         <th>Status</th>
-        <th>Reviewed By</th>
+        <th>Assigned To</th>
+		
     </tr>
     <%
         List<RequestAccess> requests = (List<RequestAccess>) request.getAttribute("requests");
@@ -65,9 +74,10 @@
         <tr>
             <td><%= r.getRequestId() %></td>
             <td><%= r.getRequestDate() %></td>
-            <td><%= r.getDepartment() %></td>
-            <td><%= r.getStatus() %></td>
-            <td><%= r.getReviewedBy() == null ? "Pending" : r.getReviewedBy() %></td>
+            <td><%= r.getAction() %></td>
+            <td><% if(r.getRole()=="Executer"){out.print("Execution Remaining");}
+					else {out.print(r.getStatus()+" Reviewed");}%></td>
+            <td><%= r.getAssignedTo()%></td>
         </tr>
     <%
             }

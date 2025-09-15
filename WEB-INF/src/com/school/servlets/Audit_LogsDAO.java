@@ -93,14 +93,14 @@ public class Audit_LogsDAO {
 	    }
 	}
 	
-	public void recordCreateRequest(String rollNo,String department){
+	public void recordCreateRequest(String rollNo,String action){
 		String sql = "INSERT INTO audit_logs (username,event,reg) VALUES (?,'Request Access',?)";
 
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
 
 	        st.setString(1, rollNo);
-			st.setString(2,department);
+			st.setString(2,action);
 	        st.executeUpdate();
 
 	    } catch (Exception e) {
@@ -111,7 +111,7 @@ public class Audit_LogsDAO {
 	public void recordRequestStatus(String rollNo, String action, int requestId) {
     String sql = 
         "INSERT INTO audit_logs (username, event, reg) " +
-        "SELECT ?, CONCAT(?, ' Request Access requested by ', requested_by), department " +
+        "SELECT ?, CONCAT(?, ' Request Access requested by ', requested_by), action " +
         "FROM request_access WHERE request_id = ?";
 
     try (Connection con = DBUtil.getConnection();

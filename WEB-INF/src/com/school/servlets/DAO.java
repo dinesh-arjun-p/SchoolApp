@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
 
-
 import com.school.model.*;
 import com.school.utils.*;
 import java.util.*;
@@ -87,10 +86,7 @@ public class DAO {
 
 	        if (rs.next()) {
 	            userInfo = new UserInfo();
-	            userInfo.setRollNo(rs.getString("roll_no"));
-	            userInfo.setName(rs.getString("name"));
-	            userInfo.setPass(rs.getString("pass"));
-	            userInfo.setRole(rs.getString("role_name"));
+				userInfo=userInfo.setUserInfo(rs);
 	        }
 
 	    } catch (Exception e) {
@@ -228,10 +224,7 @@ public class DAO {
 
 	        while (rs.next()) {
 	            UserInfo u = new UserInfo();
-	            u.setRollNo(rs.getString("roll_no"));
-	            u.setName(rs.getString("name"));
-	            u.setRole(rs.getString("role_name"));
-	            users.add(u);
+	            users.add(u.setUserInfo(rs));
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -255,13 +248,7 @@ public class DAO {
 	        try (ResultSet rs = st.executeQuery()) {
 	            if (rs.next()) {
 	                user = new UserInfo();
-	                user.setRollNo(rs.getString("roll_no"));
-	                user.setName(rs.getString("name"));
-	                user.setPass(rs.getString("pass"));
-	                user.setRole(rs.getString("role_name"));
-					user.setUserId(rs.getString("userid"));
-					user.setEmail(rs.getString("email"));
-
+					user=user.setUserInfo(rs);
 	               
 	            }
 	        }
@@ -368,16 +355,40 @@ public class DAO {
 		}
 	}
 
+	public boolean isRuleTrue(ResultSet rs){
+		return false;
+	}
+	public int getRule(){
+		String sql="Select * from rule where priority>-1 order by priority";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement st=con.prepareStatement(sql)){
+			ResultSet rs=st.executeQuery();
+			while(rs.next()){
+				if(isRuleTrue(rs))
+					return rs.getInt("rule_id");
+			}
+		}
+		catch(Exception e){
+			return 1;
+		}
+		return 1;
+	}
+	
 
+	public boolean createRequest(int rule,String action, String rollNo) {
+	    String sql = "INSERT INTO request_access " +
+                 "( action, requested_by, rule_id, assigned_to, role) " +
+                 "SELECT  ?, ?, ?, incharge, role " +
+                 "FROM rule_work_flow " +
+                 "WHERE rule_id = ? AND rule_order = 1";
 
-
-	public boolean createRequest(String department, String rollNo, String date) {
-	    String sql = "INSERT INTO request_access (request_date, department, requested_by) VALUES (?, ?, ?)";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
-	    	st.setString(1,date);
-	        st.setString(2, department);
-	        st.setString(3, rollNo);
+			
+	        st.setString(1, action);
+	        st.setString(2, rollNo);
+			st.setInt(3,rule);
+			st.setInt(4,rule);
 	        return st.executeUpdate() > 0;
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -399,10 +410,11 @@ public class DAO {
                     RequestAccess req = new RequestAccess();
                     req.setRequestId(rs.getInt("request_id"));
                     req.setRequestDate(rs.getDate("request_date"));
-                    req.setDepartment(rs.getString("department"));
+                    req.setAction(rs.getString("action"));
                     req.setRequestedBy(rs.getString("requested_by"));
-                    req.setStatus(rs.getString("status"));
-                    req.setReviewedBy(rs.getString("reviewed_by"));
+                    req.setStatus(rs.getInt("status"));
+                    req.setAssignedTo(rs.getString("assigned_to"));
+					req.setRole(rs.getString ("role"));
                     requests.add(req);
                 }
             }
@@ -414,24 +426,38 @@ public class DAO {
         return requests;
     }
 	
-	public List<RequestAccess> getPendingRequests() {
+	public List<RequestAccess> getReviewRequests(String teacherRollNo) {
 	    List<RequestAccess> requests = new ArrayList<>();
-	    String sql = "SELECT * FROM request_access WHERE status = 'Pending'";
+	    String sql = "SELECT * FROM request_access WHERE role = 'Reviewer' and assigned_to=?";
 
 	    try (Connection con = DBUtil.getConnection();
-	         PreparedStatement ps = con.prepareStatement(sql);
-	         ResultSet rs = ps.executeQuery()) {
+	         PreparedStatement ps = con.prepareStatement(sql);){
+			 ps.setString(1,teacherRollNo);
+	         ResultSet rs = ps.executeQuery();
 
 	        while (rs.next()) {
 	            RequestAccess req = new RequestAccess();
-	            req.setRequestId(rs.getInt("request_id"));
-	            req.setRequestDate(rs.getDate("request_date"));
-	            req.setDepartment(rs.getString("department"));
-	            req.setRequestedBy(rs.getString("requested_by"));
-	            req.setStatus(rs.getString("status"));
-	            req.setReviewedBy(rs.getString("reviewed_by"));
+	            requests.add(req.setRequestAccess(rs));
+	        }
 
-	            requests.add(req);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return requests;
+	}
+	
+	public List<RequestAccess> getExecuteRequests(String teacherRollNo) {
+	    List<RequestAccess> requests = new ArrayList<>();
+	    String sql = "SELECT * FROM request_access WHERE role = 'Executer' and assigned_to=?";
+
+	    try (Connection con = DBUtil.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql);){
+			 ps.setString(1,teacherRollNo);
+	         ResultSet rs = ps.executeQuery();
+
+	        while (rs.next()) {
+	            RequestAccess req = new RequestAccess();
+	            requests.add(req.setRequestAccess(rs));
 	        }
 
 	    } catch (Exception e) {
@@ -442,45 +468,86 @@ public class DAO {
 	
 	
 	
-	public boolean updateRequestStatus(int requestId, String status, String reviewedBy) {
-	    String updateSql = "UPDATE request_access SET status=?, reviewed_by=? WHERE request_id=?";
+	public boolean updateRequestStatus(int requestId, String status) {
+		if(status.equals("Approved")){
+			String updateSql= "UPDATE request_access ra JOIN rule_work_flow rwf ON rwf.rule_id = ra.rule_id " +
+			" AND rwf.rule_order = ra.status + 2 SET ra.status = ra.status + 1, " +
+			"    ra.assigned_to = rwf.incharge, ra.role = rwf.role WHERE ra.request_id = ?";
 
-	    try (Connection con = DBUtil.getConnection()) {
-	        // turn off auto-commit for transaction safety
-	        con.setAutoCommit(false);
 
-	        try (PreparedStatement ps = con.prepareStatement(updateSql)) {
-	            ps.setString(1, status);      // Approved / Rejected
-	            ps.setString(2, reviewedBy);  // teacher/admin roll no
-	            ps.setInt(3, requestId);
-	            ps.executeUpdate();
-	        }
-	        con.commit();  // commit both queries together
-	        return true;
+			try (Connection con = DBUtil.getConnection()) {
+				// turn off auto-commit for transaction safety
+				con.setAutoCommit(false);
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    return false;
+				try (PreparedStatement ps = con.prepareStatement(updateSql)) {
+					ps.setInt(1, requestId);
+					ps.executeUpdate();
+				}
+				con.commit();  // commit both queries together
+				return true;
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+		else if(status.equals("Rejected")){
+			String deleteSQL = "delete from request_access WHERE request_id=?";
+
+			try (Connection con = DBUtil.getConnection()) {
+				// turn off auto-commit for transaction safety
+				con.setAutoCommit(false);
+
+				try (PreparedStatement ps = con.prepareStatement(deleteSQL)) {
+					ps.setInt(1, requestId);
+					ps.executeUpdate();
+				}
+				con.commit();  // commit both queries together
+				return true;
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+		else if(status.equals("Executed")){
+			executeAction(requestId);
+			String deleteSQL = "delete from request_access WHERE request_id=?";
+
+			try (Connection con = DBUtil.getConnection()) {
+				// turn off auto-commit for transaction safety
+				con.setAutoCommit(false);
+
+				try (PreparedStatement ps = con.prepareStatement(deleteSQL)) {
+					ps.setInt(1, requestId);
+					ps.executeUpdate();
+				}
+				con.commit();  // commit both queries together
+				return true;
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+		return false;
 	}
-
+	
+	
+	public void executeAction(int requestId){
+	}
 
 	public List<Notification> getNotificationsForStudent(String rollNo) {
 	    List<Notification> list = new ArrayList<>();
-	    String sql = "SELECT * FROM request_access WHERE requested_by=? and seen='unseen' and status <> 'Pending'";
+	    String sql = "SELECT * FROM notification WHERE requested_by=?  ";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql)) {
 	        ps.setString(1, rollNo);
 	        try (ResultSet rs = ps.executeQuery()) {
 	            while (rs.next()) {
 	                Notification n = new Notification();
-	                n.setNotificationId(rs.getInt("request_id"));
-	                n.setStudentRollNo(rs.getString("requested_by"));
-	                n.setDepartment(rs.getString("department"));
-	                n.setReviewedBy(rs.getString("reviewed_by"));
-	                n.setStatus(rs.getString("status"));
-	                n.setRequest_date(rs.getString("request_date"));
-	                list.add(n);
+					
+	                list.add(n.setNotification(rs));
 	            }
 	        }
 	    } catch (Exception e) {
@@ -489,9 +556,24 @@ public class DAO {
 	    return list;
 	}
 
+	public boolean createNotification(int requestId,String status,String teacherRollNo){
+		String sql = "insert into  notification  (requested_by ,action,reviewed_by,status)"+
+		"(select requested_by,action,?,? from request_access where request_id=?)";
+		try (Connection con = DBUtil.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setString(1,teacherRollNo);
+			ps.setString(2,status);
+			ps.setInt(3,requestId);
+			
+	        return ps.executeUpdate() > 0;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
 	
 	public boolean deleteNotification(int requestId) {
-	    String sql = "update  request_access set seen='seen' WHERE request_id=?";
+	    String sql = "delete from notification where notify_id=?";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql)) {
 	        ps.setInt(1, requestId);
@@ -502,33 +584,9 @@ public class DAO {
 	    return false;
 	}
 	
-	public List<RequestAccess> getAllViewedRequests() {
-	    List<RequestAccess> requests = new ArrayList<>();
-	    String sql = "SELECT * FROM request_access where status ='Approved' or status='Rejected' ORDER BY request_id DESC";
-
-	    try (Connection con = DBUtil.getConnection();
-	         PreparedStatement ps = con.prepareStatement(sql);
-	         ResultSet rs = ps.executeQuery()) {
-
-	        while (rs.next()) {
-	            RequestAccess req = new RequestAccess();
-	            req.setRequestId(rs.getInt("request_id"));
-	            req.setRequestDate(rs.getDate("request_date"));
-	            req.setDepartment(rs.getString("department"));
-	            req.setRequestedBy(rs.getString("requested_by"));
-	            req.setStatus(rs.getString("status"));
-	            req.setReviewedBy(rs.getString("reviewed_by"));
-
-	            requests.add(req);
-	        }
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-
-	    return requests;
-	}
-
+	
+	
+	
 	public List<Logs> getAllLogs() {
 	    List<Logs> logs = new ArrayList<>();
 	    String sql = "SELECT * FROM audit_logs ORDER BY id DESC";
@@ -539,14 +597,9 @@ public class DAO {
 
 	        while (rs.next()) {
 	            Logs req = new Logs();
-	            req.setId(rs.getInt("id"));
-	            req.setUserName(rs.getString("username"));
-	            req.setEvent(rs.getString("event"));
-	            req.setReg(rs.getString("reg"));
-	            req.setDate(rs.getDate("log_date"));
-	            req.setTime(rs.getTime("log_time"));
+				
 
-	            logs.add(req);
+	            logs.add(req.setLog(rs));
 	        }
 
 	    } catch (Exception e) {

@@ -27,6 +27,7 @@ public class StudentHomeServlet extends HttpServlet {
         DAO dao = new DAO();
         List<RequestAccess> requests = dao.getRequestedByStudent((String) session.getAttribute("rollNo"));
         List<Notification> notify = dao.getNotificationsForStudent((String) session.getAttribute("rollNo"));
+		System.out.println(notify);
         // set data for JSP
         request.setAttribute("requests", requests);
         request.setAttribute("notifications", notify);

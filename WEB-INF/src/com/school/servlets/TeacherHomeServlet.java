@@ -24,14 +24,14 @@ public class TeacherHomeServlet extends HttpServlet {
         }
 
         String teacherName = (String) session.getAttribute("uname");
-
+		String teacherRollNo=(String) session.getAttribute("rollNo");
         DAO dao = new DAO();
-        List<RequestAccess> pendingRequests = dao.getPendingRequests(); 
+        List<RequestAccess> reviewRequests = dao.getReviewRequests(teacherRollNo); 
         
-        List<RequestAccess> allViewedRequests = dao.getAllViewedRequests(); 
-        session.setAttribute("allViewed", allViewedRequests);
+        List<RequestAccess> executeRequests = dao.getExecuteRequests(teacherRollNo); 
         session.setAttribute("teacherName", teacherName);
-        session.setAttribute("requests", pendingRequests);
+        session.setAttribute("reviewRequests", reviewRequests);
+		session.setAttribute("executeRequests", executeRequests);
 
         request.getRequestDispatcher("/WEB-INF/TeacherHome.jsp").forward(request, response);
     }

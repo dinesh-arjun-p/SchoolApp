@@ -1,5 +1,6 @@
 package com.school.model;
 
+import java.sql.*;
 public class UserInfo {
 	 private String rollNo;	
 	 private String userid;
@@ -8,7 +9,17 @@ public class UserInfo {
 	 private String email;
     private String role;
     private int role_id;
-
+	
+	public UserInfo setUserInfo(ResultSet rs)throws SQLException{
+		UserInfo user=new UserInfo();
+		user.setRollNo(rs.getString("roll_no"));
+		user.setName(rs.getString("name"));
+		user.setPass(rs.getString("pass"));
+		user.setRole(rs.getString("role_name"));
+		user.setUserId(rs.getString("userid"));
+		user.setEmail(rs.getString("email"));
+		return user;
+	}
     // getters & setters
     public String getRollNo() { return rollNo; }
     public void setRollNo(String rollNo) { this.rollNo = rollNo; }

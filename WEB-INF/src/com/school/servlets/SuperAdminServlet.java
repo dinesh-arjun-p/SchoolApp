@@ -28,8 +28,10 @@ public class SuperAdminServlet extends HttpServlet {
         DAO dao = new DAO();
         List<UserInfo> users = dao.getAllUsers();
 		List<Logs> logs=dao.getAllLogs();
+		List<RequestAccess> requests=dao.getAllRequest();
 		request.setAttribute("logs",logs);
         request.setAttribute("users", users);
+		request.setAttribute("requests",requests);
         request.getRequestDispatcher("/WEB-INF/SuperAdminHome.jsp").forward(request, response);
     }
 }

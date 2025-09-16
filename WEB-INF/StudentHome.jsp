@@ -80,6 +80,7 @@
         <th>ID</th>
         <th>Date</th>
         <th>Action</th>
+		<th>Action Value</th>
         <th>Status</th>
         <th>Assigned To</th>
 		
@@ -93,6 +94,7 @@
             <td><%= r.getRequestId() %></td>
             <td><%= r.getRequestDate() %></td>
             <td><%= r.getAction() %></td>
+			<td><%= r.getActionValue() %></td>
             <td><% if(r.getRole()=="Executer"){out.print("Execution Remaining");}
 					else {out.print(r.getStatus()+" Reviewed");}%></td>
 			

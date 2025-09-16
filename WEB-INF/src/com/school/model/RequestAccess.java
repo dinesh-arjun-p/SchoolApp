@@ -11,6 +11,8 @@ public class RequestAccess {
     private int status;     
     private List<String> assignedTo;  
 	private String role;
+	private String actionFor;
+	private String actionValue;
 	
 
 
@@ -24,6 +26,8 @@ public class RequestAccess {
 	    req.setStatus(rs.getInt("status"));
 		req.setRole(rs.getString("role"));
 		req.setAssignedTo(dao.getAssignedToFunc(rs.getInt("request_id"),rs.getString("role")));
+		req.setActionFor(rs.getString("action_for"));
+		req.setActionValue(rs.getString("action_value"));
 		return req;
 	}
 	
@@ -76,5 +80,19 @@ public class RequestAccess {
     }
     public void setRole(String role) {
         this.role = role;
+    }
+	
+	public String getActionFor() {
+        return actionFor;
+    }
+    public void setActionFor(String actionFor) {
+        this.actionFor = actionFor;
+    }
+	
+	public String getActionValue() {
+        return actionValue;
+    }
+    public void setActionValue(String actionValue) {
+        this.actionValue = actionValue;
     }
 }

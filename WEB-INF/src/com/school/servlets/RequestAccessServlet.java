@@ -26,13 +26,14 @@ public class RequestAccessServlet extends HttpServlet {
 
         String action = req.getParameter("action");
 		String action_value=req.getParameter("action_value");
-		String action_for=(String)session.getAttribute("rollNo");
+		String action_for=req.getParameter("action_for");
 		session.setAttribute("action",action);
 		session.setAttribute("action_value",action_value);
-		if(action.equals("changeName")){
-			action_for=req.getParameter("action_for");
-			session.setAttribute("action_for",action_for);
+		if(action_for.equals("")){
+			action_for=(String)session.getAttribute("rollNo");
+			
 		}
+		session.setAttribute("action_for",action_for);
 		
        
 		int rule=dao.getRule();

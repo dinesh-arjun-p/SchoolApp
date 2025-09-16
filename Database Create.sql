@@ -147,6 +147,7 @@ select * from request_reviewer;
 select * from rule_work_flow;
 select * from rule;
 
+ALTER TABLE audit_logs AUTO_INCREMENT = 1
 
 
 

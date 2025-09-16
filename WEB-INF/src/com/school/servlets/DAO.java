@@ -464,6 +464,27 @@ public class DAO {
 	}
 
 	
+	public List<RequestAccess> getAllRequest(){
+		List<RequestAccess> requests = new ArrayList<>();
+        String sql = "SELECT * FROM request_access " ;
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RequestAccess req = new RequestAccess();
+                    requests.add(req.setRequestAccess(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return requests;
+	}
+	
 	public List<RequestAccess> getRequestedByStudent(String rollNo) {
         List<RequestAccess> requests = new ArrayList<>();
         String sql = "SELECT * FROM request_access WHERE requested_by = ? order by request_id desc" ;
@@ -745,6 +766,28 @@ public class DAO {
 	    }
 
 	    return logs;
+	}
+	
+	public List<UserInfo> getStudentsForTeacher(String teacherName){
+		List<UserInfo> students = new ArrayList<>();
+	    String sql = "SELECT * FROM person p join role r on p.role_id=r.role_id where r.role_id=3 ";
+
+	    try (Connection con = DBUtil.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            UserInfo user=new UserInfo();
+				
+
+	            students.add(user.setUserInfo(rs));
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return students;
 	}
 
 }

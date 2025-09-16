@@ -29,10 +29,11 @@ public class TeacherHomeServlet extends HttpServlet {
         List<RequestAccess> reviewRequests = dao.getReviewRequests(teacherRollNo); 
         
         List<RequestAccess> executeRequests = dao.getExecuteRequests(teacherRollNo); 
+		List<UserInfo> students=dao.getStudentsForTeacher(teacherName);
         request.setAttribute("teacherName", teacherName);
         request.setAttribute("reviewRequests", reviewRequests);
 		request.setAttribute("executeRequests", executeRequests);
-
+		request.setAttribute("students",students);
         request.getRequestDispatcher("/WEB-INF/TeacherHome.jsp").forward(request, response);
     }
 }

@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
-<%@ page import="com.school.model.RequestAccess" %>
+<%@ page import="com.school.model.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,6 +27,38 @@
 	</form>
     <h2>Welcome Teacher,Hello ${teacherName}</h2>
 
+<form action="requestAccess" method="post">
+    <label for="action">Action:</label>
+    <select name="action" id="action" required>
+        <option value="">-- Select Action --</option>
+        <option value="changePhoneNumber">Change Phone Number</option>
+        <option value="changeName">Change Name</option>
+        <option value="changeClass">Change Class</option>
+    </select>
+    <br><br>
+
+    <% 
+       List<UserInfo> students = (List<UserInfo>) request.getAttribute("students");
+       if ( students != null) { 
+    %>
+        <label for="student">Select Student:</label>
+        <select name="action_for" id="student">
+			<option value="">-- Select Action --</option>
+            <% for (UserInfo s : students) { %>
+                <option value="<%=s.getRollNo()%>"><%=s.getRollNo()%></option>
+            <% } %>
+        </select>
+        <br><br>
+    <% } %>
+
+
+
+    <!-- Fields for new values -->
+    <input type="text" name="action_value"><br>
+    <button type="submit">Request</button>
+	</form>
+
+	
     <%
 
         List<RequestAccess> reqs = (List<RequestAccess>) request.getAttribute("reviewRequests");
@@ -43,6 +75,8 @@
                 <th>Request ID</th>
                 <th>Date</th>
                 <th>Department</th>
+				<th>Action Value</th>
+				<th>Action For</th>
                 <th>Requested By</th>
                 <th>Action</th>
             </tr>
@@ -53,6 +87,8 @@
                     <td><%= req.getRequestId() %></td>
                     <td><%= req.getRequestDate() %></td>
                     <td><%= req.getAction() %></td>
+					<td><%= req.getActionValue() %></td>
+					<td><%= req.getActionFor() %></td>
                     <td><%= req.getRequestedBy() %></td>
                     <td>
                         <form action="UpdateRequestStatus" method="post" style="display:inline;">
@@ -87,6 +123,8 @@
                 <th>Request ID</th>
                 <th>Date</th>
                 <th>Department</th>
+				<th>Action Value</th>
+				<th>Action For</th>
                 <th>Requested By</th>
                 <th>Action</th>
             </tr>
@@ -97,6 +135,8 @@
                     <td><%= exe.getRequestId() %></td>
                     <td><%= exe.getRequestDate() %></td>
                     <td><%= exe.getAction() %></td>
+					<td><%= exe.getActionValue() %></td>
+					<td><%= exe.getActionFor() %></td>
                     <td><%= exe.getRequestedBy() %></td>
                     <td>
                         <form action="UpdateRequestStatus" method="post" style="display:inline;">

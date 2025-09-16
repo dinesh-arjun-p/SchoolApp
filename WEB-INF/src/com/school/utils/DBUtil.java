@@ -1,7 +1,6 @@
 package com.school.utils;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
 
 public class DBUtil {
     private static final String url = "jdbc:mysql://localhost:3306/school";
@@ -16,7 +15,7 @@ public class DBUtil {
         }
     }
 
-    public static Connection getConnection() throws Exception {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, user, pass);
     }
 }

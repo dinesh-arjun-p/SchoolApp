@@ -1,27 +1,29 @@
 package com.school.model;
 
 import java.sql.*;
-
+import java.util.List;
+import com.school.servlets.*;
 public class RequestAccess {
     private int requestId;
     private Date requestDate;
     private String action;
     private String requestedBy;
     private int status;     
-    private String assignedTo;  
+    private List<String> assignedTo;  
 	private String role;
 	
 
 
 	public RequestAccess setRequestAccess(ResultSet rs) throws SQLException{
+		DAO dao=new DAO();
 		RequestAccess req = new RequestAccess();
 	    req.setRequestId(rs.getInt("request_id"));
 	    req.setRequestDate(rs.getDate("request_date"));
 	    req.setAction(rs.getString("action"));
 	    req.setRequestedBy(rs.getString("requested_by"));
 	    req.setStatus(rs.getInt("status"));
-	    req.setAssignedTo(rs.getString("assigned_to"));
 		req.setRole(rs.getString("role"));
+		req.setAssignedTo(dao.getAssignedToFunc(rs.getInt("request_id"),rs.getString("role")));
 		return req;
 	}
 	
@@ -62,10 +64,10 @@ public class RequestAccess {
         this.status = status;
     }
 
-    public String getAssignedTo() {
+    public List<String> getAssignedTo() {
         return assignedTo;
     }
-    public void setAssignedTo(String assignedTo) {
+    public void setAssignedTo(List<String> assignedTo) {
         this.assignedTo = assignedTo;
     }
 	

@@ -8,6 +8,20 @@
     <title>Teacher Home</title>
 </head>
 <body>
+	<%
+	String msg = request.getParameter("msg");
+    String error = request.getParameter("error");
+    if (msg != null) {
+	%>
+        <p style="color:green;"><%= msg %></p>
+	<%
+    }
+    if (error != null) {
+	%>
+        <p style="color:red;"><%= error %></p>
+	<%
+    }
+	%>
 	<form action="logout">
     <input type="submit" value="logout">
 	</form>
@@ -15,7 +29,7 @@
 
     <%
 
-        List<RequestAccess> reqs = (List<RequestAccess>) session.getAttribute("reviewRequests");
+        List<RequestAccess> reqs = (List<RequestAccess>) request.getAttribute("reviewRequests");
 
         if (reqs == null || reqs.isEmpty()) {
     %>
@@ -59,7 +73,7 @@
     <br>
 	<%
 
-        List<RequestAccess> exes = (List<RequestAccess>) session.getAttribute("executeRequests");
+        List<RequestAccess> exes = (List<RequestAccess>) request.getAttribute("executeRequests");
 
         if (exes == null || exes.isEmpty()) {
     %>

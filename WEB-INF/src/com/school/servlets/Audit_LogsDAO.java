@@ -1,8 +1,6 @@
 package com.school.servlets;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 
 import com.school.model.*;
 import com.school.utils.*;
@@ -108,22 +106,37 @@ public class Audit_LogsDAO {
 	    }
 	}
 	
-	public void recordRequestStatus(String rollNo, String action, int requestId) {
+	public void recordRequestStatus(String rollNo, String status, int requestId) {
     String sql = 
         "INSERT INTO audit_logs (username, event, reg) " +
-        "SELECT ?, CONCAT(?, ' Request Access requested by ', requested_by), action " +
+        "SELECT ?, CONCAT(?, ' Request  requested by ', requested_by), action " +
         "FROM request_access WHERE request_id = ?";
 
     try (Connection con = DBUtil.getConnection();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
         ps.setString(1, rollNo);       // for username
-        ps.setString(2, action);       // for event prefix
+        ps.setString(2, status);       // for event prefix
         ps.setInt(3, requestId);       // for WHERE condition
 
         ps.executeUpdate();
     } catch (Exception e) {
         e.printStackTrace();
+		}
+	}
+	
+	public void clearAuditLogs() {
+		String deleteSql = "DELETE FROM audit_logs";
+		String resetSql = "ALTER TABLE audit_logs AUTO_INCREMENT = 1";
+
+		try (Connection con = DBUtil.getConnection();
+         Statement st = con.createStatement()) {
+        
+			st.executeUpdate(deleteSql);
+			st.executeUpdate(resetSql);  // reset counter
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

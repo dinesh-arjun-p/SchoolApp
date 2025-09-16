@@ -93,7 +93,9 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
 </table>
 
 <h2>All Audit Logs</h2>
-
+<form action="ClearAuditLogs" method="post">
+                <button type="submit">clear</button>
+            </form>
 <table >
     <tr>
         <th>Id</th>

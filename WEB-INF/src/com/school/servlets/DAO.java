@@ -1,8 +1,6 @@
 package com.school.servlets;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.HttpURLConnection;
@@ -214,8 +212,7 @@ public class DAO {
 	
 	public List<UserInfo> getAllUsers() {
 	    List<UserInfo> users = new ArrayList<>();
-	    String sql = "SELECT p.roll_no, p.name, r.role_name " +
-	                 "FROM person p JOIN role r ON p.role_id = r.role_id";
+	    String sql = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id";
 
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql);
@@ -234,16 +231,13 @@ public class DAO {
 	public UserInfo getUserByRollNo(String rollNo) {
 	    UserInfo user = null;
 
-	    String sql = "SELECT p.roll_no,p.userid, p.name, p.pass, p.email,r.role_name " +
-	                 "FROM person p " +
-	                 "JOIN role r ON p.role_id = r.role_id " +
-	                 "WHERE p.roll_no = ?";
+	      String sql = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id " +
+	                 "WHERE p.roll_no=? ";
 
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
 
 	        st.setString(1, rollNo);
-
 	        try (ResultSet rs = st.executeQuery()) {
 	            if (rs.next()) {
 	                user = new UserInfo();
@@ -373,27 +367,102 @@ public class DAO {
 		return 1;
 	}
 	
+	
+	public int changeRoleInRequest(int requestId) throws SQLException{
+		String sql = "UPDATE request_access ra JOIN rule r ON ra.rule_id = r.rule_id " +
+             "JOIN rule_work_flow rwf ON rwf.rule_id = ra.rule_id " +
+             "SET ra.role = 'Executer' " +
+             "WHERE ra.request_id = ? " +
+             "AND ra.status >= r.status_limit";
 
-	public boolean createRequest(int rule,String action, String rollNo) {
-	    String sql = "INSERT INTO request_access " +
-                 "( action, requested_by, rule_id, assigned_to, role) " +
-                 "SELECT  ?, ?, ?, incharge, role " +
-                 "FROM rule_work_flow " +
-                 "WHERE rule_id = ? AND rule_order = 1";
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setInt(1, requestId);
+			return ps.executeUpdate(); 
+		}
+		catch(Exception e){
+			return 0;
+		}
 
-	    try (Connection con = DBUtil.getConnection();
-	         PreparedStatement st = con.prepareStatement(sql)) {
-			
-	        st.setString(1, action);
-	        st.setString(2, rollNo);
-			st.setInt(3,rule);
-			st.setInt(4,rule);
-	        return st.executeUpdate() > 0;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    return false;
 	}
+	
+	public int assignToReviewers(int requestId)throws SQLException{
+		String insertSql = "INSERT INTO request_reviewer (request_id, reviewer_roll_no,role) " +
+                       "SELECT ra.request_id, rwf.incharge,rwf.role " +
+                       "FROM request_access ra " +
+                       "JOIN rule_work_flow rwf ON ra.rule_id = rwf.rule_id " +
+                       "WHERE ra.request_id = ? ";
+
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(insertSql)) {
+			ps.setInt(1, requestId);
+			return ps.executeUpdate();   
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	
+	
+	public String checkConstraint(String action,String action_value){
+		if(action.equals("changePhoneNumber")&&action_value.length()!=10){
+			return "Phone Number is not valid";
+		}
+		return null;
+	}
+	
+	public boolean createRequest(int rule, String action, String action_value,String action_for, String rollNo) {
+			String sql = "INSERT INTO request_access (action, requested_by, rule_id, action_value,action_for) VALUES (?, ?, ?, ?,?)";
+
+			try (Connection con = DBUtil.getConnection();
+				PreparedStatement st = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+				st.setString(1, action);
+				st.setString(2, rollNo);
+				st.setInt(3, rule);
+				st.setString(4, action_value); 
+				st.setString(5,action_for);
+
+				int affectedRows = st.executeUpdate();
+
+				if (affectedRows > 0) {
+					try (ResultSet rs = st.getGeneratedKeys()) {
+					if (rs.next()) {
+						assignToReviewers(rs.getInt(1));
+						return true;
+					}
+				}
+			}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false; // return -1 if failed
+	}
+
+	
+	public List<String> getAssignedToFunc(int requestId, String role) {
+		List<String> res = new ArrayList<>();
+		String sql = "SELECT rr.reviewer_roll_no " +
+					"FROM request_reviewer rr " +
+					"WHERE rr.request_id = ? " +
+					"AND rr.role = ? " +
+					"AND rr.decision = 'Pending'";
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setInt(1, requestId);
+			ps.setString(2, role);
+	
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					res.add(rs.getString("reviewer_roll_no"));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
 	
 	public List<RequestAccess> getRequestedByStudent(String rollNo) {
         List<RequestAccess> requests = new ArrayList<>();
@@ -401,20 +470,13 @@ public class DAO {
 
         try (Connection con = DBUtil.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-        	System.out.println(rollNo);
             ps.setString(1, rollNo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     RequestAccess req = new RequestAccess();
-                    req.setRequestId(rs.getInt("request_id"));
-                    req.setRequestDate(rs.getDate("request_date"));
-                    req.setAction(rs.getString("action"));
-                    req.setRequestedBy(rs.getString("requested_by"));
-                    req.setStatus(rs.getInt("status"));
-                    req.setAssignedTo(rs.getString("assigned_to"));
-					req.setRole(rs.getString ("role"));
-                    requests.add(req);
+					changeRoleInRequest(rs.getInt("request_id"));
+                    requests.add(req.setRequestAccess(rs));
                 }
             }
 
@@ -427,7 +489,8 @@ public class DAO {
 	
 	public List<RequestAccess> getReviewRequests(String teacherRollNo) {
 	    List<RequestAccess> requests = new ArrayList<>();
-	    String sql = "SELECT * FROM request_access WHERE role = 'Reviewer' and assigned_to=?";
+	    String sql = "SELECT * FROM request_reviewer rr join request_access ra on rr.request_id=ra.request_id and rr.role=ra.role "
+		+"WHERE rr.role = 'Reviewer' and rr.reviewer_roll_no=?";
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);){
@@ -447,7 +510,8 @@ public class DAO {
 	
 	public List<RequestAccess> getExecuteRequests(String teacherRollNo) {
 	    List<RequestAccess> requests = new ArrayList<>();
-	    String sql = "SELECT * FROM request_access WHERE role = 'Executer' and assigned_to=?";
+	   String sql = "SELECT * FROM request_reviewer rr join request_access ra on rr.request_id=ra.request_id and rr.role=ra.role "
+		+"WHERE rr.role = 'Executer' and rr.reviewer_roll_no=?";
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);){
@@ -467,11 +531,53 @@ public class DAO {
 	
 	
 	
-	public boolean updateRequestStatus(int requestId, String status) {
-		if(status.equals("Approved")){
-			String updateSql= "UPDATE request_access ra JOIN rule_work_flow rwf ON rwf.rule_id = ra.rule_id " +
-			" AND rwf.rule_order = ra.status + 2 SET ra.status = ra.status + 1, " +
-			"    ra.assigned_to = rwf.incharge, ra.role = rwf.role WHERE ra.request_id = ?";
+	public void setRole(Connection con,int requestId)throws SQLException{
+		String sql = "Update request_access ra join rule r on ra.rule_id=r.rule_id set ra.role='Executer' "+
+		"where request_id=? and ra.status>=r.status_limit" ;
+
+	    try (PreparedStatement ps = con.prepareStatement(sql);){
+			 ps.setInt(1,requestId);
+	         ps.executeUpdate();
+			
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void setStatus(Connection con,int requestId)throws SQLException{
+		
+		
+		String sql ="UPDATE request_access ra " +
+             "SET ra.status = (SELECT COUNT(*) FROM request_reviewer rr " +
+             "                 WHERE rr.request_id = ra.request_id AND rr.decision = 'Approved') " +
+             "WHERE ra.request_id = ?";
+
+
+	    try (PreparedStatement ps = con.prepareStatement(sql);){
+			 ps.setInt(1,requestId);
+	         ps.executeUpdate();
+			
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void setStatusAndRole(Connection con,int requestId) throws SQLException{
+		
+		setStatus(con,requestId);
+		setRole(con,requestId);
+	}
+	
+	
+	
+	public boolean updateRequestStatus(int requestId, String decision,String teacherRollNo)  {
+		Audit_LogsDAO al=new Audit_LogsDAO();
+		al.recordRequestStatus(teacherRollNo,decision,requestId);
+		if(decision.equals("Approved")){
+			String updateSql= "UPDATE request_reviewer ra set decision='Approved' where "
+			+"ra.request_ID=? and ra.reviewer_roll_no=? and ra.role='Reviewer'";
 
 
 			try (Connection con = DBUtil.getConnection()) {
@@ -480,7 +586,9 @@ public class DAO {
 
 				try (PreparedStatement ps = con.prepareStatement(updateSql)) {
 					ps.setInt(1, requestId);
+					ps.setString(2,teacherRollNo);
 					ps.executeUpdate();
+					setStatusAndRole(con,requestId);
 				}
 				con.commit();  // commit both queries together
 				return true;
@@ -490,7 +598,7 @@ public class DAO {
 			}
 			return false;
 		}
-		else if(status.equals("Rejected")){
+		else if(decision.equals("Rejected")){
 			String deleteSQL = "delete from request_access WHERE request_id=?";
 
 			try (Connection con = DBUtil.getConnection()) {
@@ -509,7 +617,7 @@ public class DAO {
 			}
 			return false;
 		}
-		else if(status.equals("Executed")){
+		else if(decision.equals("Executed")){
 			executeAction(requestId);
 			String deleteSQL = "delete from request_access WHERE request_id=?";
 
@@ -532,8 +640,39 @@ public class DAO {
 		return false;
 	}
 	
+	public void updateTable(Connection con,ResultSet rs,String field) throws SQLException{
+		String sql="Update person set "+field+"=? where roll_no=?";
+		try(PreparedStatement ps=con.prepareStatement(sql)){
+			ps.setString(1,rs.getString("action_value"));
+			ps.setString(2,rs.getString("action_for"));
+			ps.executeUpdate();
+		}
+	}
+	
 	
 	public void executeAction(int requestId){
+		String sql="Select * from request_access where request_id=?";
+		try(Connection con=DBUtil.getConnection()){
+			con.setAutoCommit(false);
+			try(PreparedStatement ps=con.prepareStatement(sql)){
+				ps.setInt(1,requestId);
+				ResultSet rs=ps.executeQuery();
+				if(rs.next()){
+					RequestAccess req=new RequestAccess();
+					req=req.setRequestAccess(rs);
+					if(rs.getString("action").equals("changePhoneNumber")){
+						updateTable(con,rs,"phone_number");
+					}
+					else if(rs.getString("action").equals("changeName"))
+						updateTable(con,rs,"name");
+					else if(rs.getString("action").equals("changeClass"))
+						updateTable(con,rs,"class");
+				}
+			}
+			con.commit(); 
+		}
+		catch(Exception e){
+		}
 	}
 
 	public List<Notification> getNotificationsForStudent(String rollNo) {

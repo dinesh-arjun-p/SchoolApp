@@ -23,15 +23,14 @@ public class UpdateRequestStatusServlet extends HttpServlet {
 
         String teacherRollNo = (String) session.getAttribute("rollNo");
         int requestId = Integer.parseInt(request.getParameter("requestId"));
-        String action = request.getParameter("action"); // Approved / Rejected /Executed
-		Audit_LogsDAO al=new Audit_LogsDAO();
+        String action = request.getParameter("action"); 
         DAO dao = new DAO();
 		String status=action;
 		if(status.equals("Approved"))
 			status="Reviewed";
 		dao.createNotification(requestId,status,teacherRollNo);
-        dao.updateRequestStatus(requestId, action);
-		al.recordRequestStatus(teacherRollNo,action,requestId);
+        dao.updateRequestStatus(requestId, action,teacherRollNo);
+		
 
         response.sendRedirect("TeacherHomeServlet?msg=Request " + action);
     }

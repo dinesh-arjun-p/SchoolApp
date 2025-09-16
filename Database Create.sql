@@ -16,7 +16,7 @@ create table person(
      pass varchar(100) not null,
      email VARCHAR(255)  UNIQUE,
      role_id int,
-     phone_number varchar(100),
+     phone_number varchar(10),
      class int,
      foreign key (role_id)references role(role_id)
      on delete set null
@@ -40,23 +40,38 @@ insert into rule (rule_id,status_limit,priority)values(1,1,-1);
 drop table if exists request_access;
 CREATE TABLE request_access (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
-    request_date DATE default (current_date),
+    request_date DATE DEFAULT (CURRENT_DATE),
     action VARCHAR(100) NOT NULL,
+    action_for varchar(100),
+    action_value varchar(100) ,
     requested_by VARCHAR(50) NOT NULL,
-    rule_id int default -1,
-    status int default 0,
-    assigned_to VARCHAR(50) ,
-    role enum('Reviewer','Executer'),
+    rule_id INT NOT NULL,
+    status INT DEFAULT 0,  -- count of approvals
+    role ENUM('Reviewer','Executer') DEFAULT 'Reviewer',
     CONSTRAINT fk_requested_by FOREIGN KEY (requested_by) REFERENCES person(roll_no)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    CONSTRAINT fk_assigned_to FOREIGN KEY (assigned_to) REFERENCES person(roll_no)
-        ON DELETE SET null
+    CONSTRAINT fk_action_for FOREIGN KEY (action_for) REFERENCES person(roll_no)
+        ON DELETE CASCADE
         ON UPDATE CASCADE,
-	CONSTRAINT fk_rule_id_request_access FOREIGN KEY (rule_id) REFERENCES rule(rule_id)
-        ON DELETE SET null
+    CONSTRAINT fk_rule_id_request_access FOREIGN KEY (rule_id) REFERENCES rule(rule_id)
+        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+
+
+drop table if exists request_reviewer;
+CREATE TABLE request_reviewer (
+    request_id INT NOT NULL,
+    reviewer_roll_no VARCHAR(50) NOT NULL,
+    decision ENUM('Pending','Approved','Rejected') DEFAULT 'Pending',
+    role enum('Reviewer','Executer') ,
+    CONSTRAINT fk_request FOREIGN KEY (request_id) REFERENCES request_access(request_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_reviewer FOREIGN KEY (reviewer_roll_no) REFERENCES person(roll_no)
+        ON DELETE CASCADE
+);
+
 
 
 drop table if exists notification;
@@ -117,6 +132,9 @@ CREATE TABLE audit_logs (
 );
 
 
+
+
+
 set sql_safe_updates=0;
 select * from role;
 select * from person order by role_id;
@@ -124,8 +142,11 @@ select * from audit_logs;
 delete from audit_logs;
 
 select * from request_access;
-
+select * from request_reviewer;
 
 select * from rule_work_flow;
 select * from rule;
+
+
+
 

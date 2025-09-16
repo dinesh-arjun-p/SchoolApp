@@ -25,6 +25,12 @@ public class StudentHomeServlet extends HttpServlet {
 
         // fetch all requests made by this student
         DAO dao = new DAO();
+		UserInfo userInfo = dao.getUserByRollNo((String)session.getAttribute("rollNo"));
+		if (userInfo != null) {
+		        session.setAttribute("uname", userInfo.getName());
+				session.setAttribute("phone_number",userInfo.getPhoneNumber());
+				session.setAttribute("class",userInfo.getClassName());
+		} 
         List<RequestAccess> requests = dao.getRequestedByStudent((String) session.getAttribute("rollNo"));
         List<Notification> notify = dao.getNotificationsForStudent((String) session.getAttribute("rollNo"));
 		System.out.println(notify);

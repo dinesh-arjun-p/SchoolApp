@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+import com.school.dao.*;
 import java.util.*;
 import java.io.IOException;
 
@@ -29,9 +29,11 @@ public class SuperAdminServlet extends HttpServlet {
         List<UserInfo> users = dao.getAllUsers();
 		List<Logs> logs=dao.getAllLogs();
 		List<RequestAccess> requests=dao.getAllRequest();
+		List<UserInfo> superior=dao.getSuperior();
 		request.setAttribute("logs",logs);
         request.setAttribute("users", users);
 		request.setAttribute("requests",requests);
+		session.setAttribute("superior",superior);
         request.getRequestDispatcher("/WEB-INF/SuperAdminHome.jsp").forward(request, response);
     }
 }

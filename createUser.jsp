@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ page import="java.util.*" %>
+<%@ page import="com.school.model.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,6 +33,21 @@
         <option value="2">Teacher</option>
         <option value="3">Student</option>
     </select><br>
+	Class:<input type="text" name="class"><br>
+	Phone Number:<input type="text" name="phone_number"  maxlength="10"><br>
+	 <% 
+       List<UserInfo> superior = (List<UserInfo>) session.getAttribute("superior");
+       if ( superior != null) { 
+    %>
+        <label for="superior">Select Superior:</label>
+        <select name="superior" id="superior">
+			<option value="">-- Select Action --</option>
+            <% for (UserInfo s : superior) { %>
+                <option value="<%=s.getRollNo()%>"><%=s.getRollNo()%></option>
+            <% } %>
+        </select>
+        <br><br>
+    <% } %>
     <input type="submit" value="Create">
 </form>
 

@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+import com.school.dao.*;
 
 @WebServlet("/createUser")
 public class CreateUserServlet extends HttpServlet {
@@ -25,6 +25,14 @@ public class CreateUserServlet extends HttpServlet {
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("pass");
+		String className=request.getParameter("class");
+		int classNo=0;
+		try{
+			classNo=Integer.parseInt(className);
+		}
+		catch(Exception e){}
+		String superior=request.getParameter("superior");
+		String phoneNumber=request.getParameter("phone_number");
         int roleId = Integer.parseInt(request.getParameter("role_id"));
 
         try {
@@ -34,13 +42,14 @@ public class CreateUserServlet extends HttpServlet {
 
 			// Save to DB
 			
-			boolean success = dao.createUser(name, password, roleId, email, userId);
+			boolean success = dao.createUser(name, password, roleId, email, userId,classNo,phoneNumber,superior);
 
 			if (success) {
 				al.recordCreateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() ,roleId);
 				response.sendRedirect("Home.jsp?msg=User+created+successfully");
 			} else {
 				dao.deleteOktaUser(userId);
+				dao.deleteUser(email);
 				response.sendRedirect("Home.jsp?error=DB+Insert+failed");
 			}
 		} catch (Exception e) {

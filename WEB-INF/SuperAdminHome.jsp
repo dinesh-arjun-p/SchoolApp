@@ -58,6 +58,11 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
     </form>
 <% } %>
 
+<% if ("Admin".equalsIgnoreCase(role) ) { %>
+    <form action="CreateRulePageServlet" method="post" style="display:inline;">
+        <button type="submit">➕ Create Rule</button>
+    </form>
+<% } %>
 
 <br><br>
 

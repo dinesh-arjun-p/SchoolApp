@@ -3,6 +3,7 @@ package com.school.model;
 import java.sql.*;
 import java.util.List;
 import com.school.servlets.*;
+import com.school.dao.*;
 public class RequestAccess {
     private int requestId;
     private Date requestDate;

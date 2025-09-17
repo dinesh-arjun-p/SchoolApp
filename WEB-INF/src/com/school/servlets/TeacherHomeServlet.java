@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+import com.school.dao.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -29,8 +29,9 @@ public class TeacherHomeServlet extends HttpServlet {
         List<RequestAccess> reviewRequests = dao.getReviewRequests(teacherRollNo); 
         
         List<RequestAccess> executeRequests = dao.getExecuteRequests(teacherRollNo); 
-		List<UserInfo> students=dao.getStudentsForTeacher(teacherName);
-        request.setAttribute("teacherName", teacherName);
+		List<UserInfo> students=dao.getStudentsForTeacher(teacherRollNo);
+		List<Notification> notify = dao.getNotificationsForStudent((String) session.getAttribute("rollNo"));
+		request.setAttribute("notifications",notify);
         request.setAttribute("reviewRequests", reviewRequests);
 		request.setAttribute("executeRequests", executeRequests);
 		request.setAttribute("students",students);

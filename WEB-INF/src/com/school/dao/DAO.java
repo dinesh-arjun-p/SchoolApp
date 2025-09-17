@@ -1,4 +1,4 @@
-package com.school.servlets;
+package com.school.dao;
 
 import java.sql.*;
 import java.net.URI;
@@ -8,8 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
-
+import jakarta.servlet.http.*;
 import com.school.model.*;
+import com.school.servlets.*;
 import com.school.utils.*;
 import java.util.*;
 
@@ -156,7 +157,7 @@ public class DAO {
 	}
 
 	
-	public boolean createUser(String name, String password, int roleId, String email,String userId) {
+	public boolean createUser(String name, String password, int roleId, String email,String userId,int classNo,String phoneNumber,String superior) {
 		String sql = "INSERT INTO person (roll_no, name, pass, role_id, email,userid) VALUES (?, ?, ?, ?, ?,?)";
     try (Connection con = DBUtil.getConnection()) {
 
@@ -170,8 +171,29 @@ public class DAO {
             st.setInt(4, roleId);
             st.setString(5, email);
 			st.setString(6,userId);
-
-            int rows = st.executeUpdate();
+			int rows = st.executeUpdate();
+			sql="Update person set class=? where roll_no=?";
+			PreparedStatement ps=con.prepareStatement(sql);;
+			if(classNo!=0){
+				ps.setInt(1,classNo);
+				ps.setString(2,rollNo);
+				ps.executeUpdate();
+			}
+			sql="Update person set superior=? where roll_no=?";
+			ps=con.prepareStatement(sql);
+			if(superior==null||!superior.equals("")){
+				ps.setString(1,superior);
+				ps.setString(2,rollNo);
+				ps.executeUpdate();
+			}
+			sql="Update person set phone_number=? where roll_no=?";
+			ps=con.prepareStatement(sql);
+			if(phoneNumber==null||!phoneNumber.equals("")){
+				ps.setString(1,phoneNumber);
+				ps.setString(2,rollNo);
+				ps.executeUpdate();
+			}
+			ps.close();
             return rows > 0;
         }
 
@@ -270,10 +292,12 @@ public class DAO {
 	}
 	
 	public boolean deleteUser(String rollNo) {
-	    String sql = "DELETE FROM person WHERE roll_no=?";
+	    String sql = "DELETE FROM person WHERE roll_no=? or email=?";
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql)) {
+				 
 	        st.setString(1, rollNo);
+			 st.setString(2, rollNo);
 	        return st.executeUpdate() > 0;
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -348,16 +372,17 @@ public class DAO {
 		}
 	}
 
-	public boolean isRuleTrue(ResultSet rs){
-		return false;
+	public boolean isRuleTrue(ResultSet rs,HttpSession session,HttpServletRequest req) throws SQLException{
+		RuleConditionCheck rc=new RuleConditionCheck();
+		return rc.checkRule(rs,session,req);
 	}
-	public int getRule(){
-		String sql="Select * from rule where priority>-1 order by priority";
+	public int getRule(HttpSession session,HttpServletRequest req){
+		String sql="Select * from rule where priority>-1 order by priority desc,rule_id";
 		try(Connection con=DBUtil.getConnection();
 		PreparedStatement st=con.prepareStatement(sql)){
 			ResultSet rs=st.executeQuery();
 			while(rs.next()){
-				if(isRuleTrue(rs))
+				if(isRuleTrue(rs,session,req))
 					return rs.getInt("rule_id");
 			}
 		}
@@ -768,14 +793,35 @@ public class DAO {
 	    return logs;
 	}
 	
-	public List<UserInfo> getStudentsForTeacher(String teacherName){
-		List<UserInfo> students = new ArrayList<>();
-	    String sql = "SELECT * FROM person p join role r on p.role_id=r.role_id where r.role_id=3 ";
+	public List<UserInfo> getSuperior(){
+		List<UserInfo> superior = new ArrayList<>();
+	    String sql = "SELECT * FROM person p join role r on p.role_id=r.role_id where r.role_id<3 ";
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);
 	         ResultSet rs = ps.executeQuery()) {
 
+	        while (rs.next()) {
+	            UserInfo user=new UserInfo();
+				
+
+	            superior.add(user.setUserInfo(rs));
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return superior;
+	}
+	
+	public List<UserInfo> getStudentsForTeacher(String teacherRollNo){
+		List<UserInfo> students = new ArrayList<>();
+	    String sql = "SELECT * FROM person p join role r on p.role_id=r.role_id where p.role_id=3 and (p.superior =? or p.superior is null)";
+	    try (Connection con = DBUtil.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+				ps.setString(1,teacherRollNo);
+			ResultSet rs = ps.executeQuery();
 	        while (rs.next()) {
 	            UserInfo user=new UserInfo();
 				
@@ -789,5 +835,132 @@ public class DAO {
 
 	    return students;
 	}
+	
+	
+	public List<UserInfo> getTeacher(){
+		List<UserInfo> teachers=new ArrayList<>();
+		try (Connection con = DBUtil.getConnection()) {
 
+            
+            String sqlTeachers = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id WHERE r.role_name = 'Teacher'";
+            try (PreparedStatement ps = con.prepareStatement(sqlTeachers);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    UserInfo u = new UserInfo();
+                    teachers.add(u.setUserInfo(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		return teachers;
+	}
+
+
+	public List<String> getAllAttributes() {
+		List<String> attributes = new ArrayList<>();
+		String sql = "SELECT attribute FROM attribute";
+	
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery()) {
+			while (rs.next()) {
+				attributes.add(rs.getString("attribute"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return attributes;
+	}
+
+	public List<String> getOperatorsForAttribute(String attribute) {
+		List<String> operators = new ArrayList<>();
+		String sql = "SELECT operator FROM attribute_operator WHERE attribute=?";
+
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setString(1, attribute);
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					operators.add(rs.getString("operator"));
+				}
+        }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return operators;
+	}
+	
+	public int createRule(int statusLimit,int priority){
+		String sqlRule = "INSERT INTO rule (status_limit, priority) VALUES (?, ?)";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement psRule=con.prepareStatement(sqlRule, Statement.RETURN_GENERATED_KEYS)){
+            psRule.setInt(1, statusLimit);
+            psRule.setInt(2, priority);
+            psRule.executeUpdate();
+
+            ResultSet rs = psRule.getGeneratedKeys();
+            int ruleId = 0;
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+			return -1;
+		}
+		catch(Exception e){
+			return -1;
+		}
+	}
+	
+	public void createWorkFlow(int ruleId,String [] reviewers,String executer){
+		String sqlRule ="INSERT INTO rule_work_flow (rule_id, incharge, role) VALUES (?, ?, ?)";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement psWorkFlow=con.prepareStatement(sqlRule)){
+            if (reviewers != null) {
+                for (String r : reviewers) {
+                    psWorkFlow.setInt(1, ruleId);
+                    psWorkFlow.setString(2, r);
+                    psWorkFlow.setString(3, "Reviewer");
+                    psWorkFlow.addBatch();
+                }
+            }
+
+            // Insert executor
+            psWorkFlow.setInt(1, ruleId);
+            psWorkFlow.setString(2, executer);
+            psWorkFlow.setString(3, "Executer");
+            psWorkFlow.addBatch();
+
+            psWorkFlow.executeBatch();
+		}
+		catch(Exception e){
+		}
+		
+	}
+	
+	
+	public void createRuleCondition(int ruleId,String [] attributes,String [] operators,String [] values,String [] logicOps){
+		
+		String sqlRule = "INSERT INTO rule_condition (rule_id, attribute, operator, value, logic_op, order_id) VALUES (?, ?, ?, ?, ?, ?)";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement psCondition=con.prepareStatement(sqlRule)){
+           for (int i = 0; i < attributes.length; i++) {
+                psCondition.setInt(1, ruleId);
+                psCondition.setString(2, attributes[i]);
+                psCondition.setString(3, operators[i]);
+                psCondition.setString(4, values[i]);
+                String logic = (logicOps[i] == null || logicOps[i].isEmpty()) ? null : logicOps[i];
+                psCondition.setString(5, logic);
+                psCondition.setInt(6, i + 1);
+                psCondition.addBatch();
+            }
+
+            psCondition.executeBatch();
+
+            con.commit();
+		}
+		catch(Exception e){
+			
+		}
+	}
 }

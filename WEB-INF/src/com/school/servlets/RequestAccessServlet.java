@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-
+import com.school.dao.*;
 import java.io.IOException;
 
 @WebServlet("/requestAccess")
@@ -27,16 +27,16 @@ public class RequestAccessServlet extends HttpServlet {
         String action = req.getParameter("action");
 		String action_value=req.getParameter("action_value");
 		String action_for=req.getParameter("action_for");
-		session.setAttribute("action",action);
-		session.setAttribute("action_value",action_value);
-		if(action_for.equals("")){
+		req.setAttribute("action",action);
+		req.setAttribute("action_value",action_value);
+		if(action_for==null||action_for.equals("")){
 			action_for=(String)session.getAttribute("rollNo");
 			
 		}
-		session.setAttribute("action_for",action_for);
+		req.setAttribute("action_for",action_for);
 		
        
-		int rule=dao.getRule();
+		int rule=dao.getRule(session,req);
 		Audit_LogsDAO al=new Audit_LogsDAO();
         if (dao.createRequest(rule,action,action_value,action_for, rollNo)) {
 			al.recordCreateRequest(rollNo,action);

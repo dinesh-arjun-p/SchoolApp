@@ -1,5 +1,6 @@
 package com.school.servlets;
 import com.school.model.*;
+import com.school.dao.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

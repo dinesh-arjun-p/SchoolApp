@@ -1,9 +1,10 @@
-package com.school.servlets;
+package com.school.dao;
 
 import java.sql.*;
 
 import com.school.model.*;
 import com.school.utils.*;
+import com.school.servlets.*;
 import java.util.*;
 
 public class Audit_LogsDAO {

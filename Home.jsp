@@ -27,11 +27,11 @@
     String role = (String) session.getAttribute("role");
     String email = (String) session.getAttribute("email");
     if ("Admin".equalsIgnoreCase(role)) {
-        request.getRequestDispatcher("SuperAdminServlet").forward(request, response);
+        request.getRequestDispatcher("/SuperAdminServlet").forward(request, response);
     } else if ("Teacher".equalsIgnoreCase(role)) {
-        request.getRequestDispatcher("TeacherHomeServlet").forward(request, response);
+        request.getRequestDispatcher("/TeacherHomeServlet").forward(request, response);
     } else if ("Student".equalsIgnoreCase(role)) {
-        request.getRequestDispatcher("StudentHomeServlet").forward(request, response);
+        request.getRequestDispatcher("/StudentHomeServlet").forward(request, response);
     } else {
 %>
         <h2>Unknown role: <%= role %><%= email %></h2>

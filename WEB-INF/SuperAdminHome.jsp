@@ -28,7 +28,6 @@
     String uname = (String) session.getAttribute("uname");
 	String email = (String) session.getAttribute("email");
 	String rollNo = (String) session.getAttribute("rollNo");
-    
     String msg = request.getParameter("msg");
     String error = request.getParameter("error");
     if (msg != null) {
@@ -96,6 +95,43 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
         }
     %>
 </table>
+
+
+<h2>All Rules</h2>
+
+<table style="border: 1px solid black;">
+    <tr>
+        <th>Rule Id</th>
+        <th>Condition</th>
+        <th>No of Review Needed</th>
+        <th>Priority</th>
+		<th>Action</th>
+    </tr>
+    <%
+        List<Rule> rules = (List<Rule>) request.getAttribute("rules");
+        if (rules != null) {
+            for (Rule r : rules) {
+    %>
+    <tr>
+        <td><%= r.getRuleId() %></td>
+        <td><% for(String c:r.getCondition()){out.print(c);%><br><% }%><br></td>
+        <td><%= r.getStatusLimit() %></td>
+		<td><%= r.getPriority() %></td>
+        <td>
+            <form action="deleteRule" method="post">
+                <input type="hidden" name="ruleId" value="<%= r.getRuleId() %>">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    <%
+            }
+        }
+    %>
+</table>
+
+
+
 <p>All requests.</p>
 <%
 
@@ -129,7 +165,8 @@ Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
                     <td><%= exe.getAction() %></td>
 					<td><%= exe.getActionValue() %></td>
 					<td><%= exe.getActionFor() %></td>
-					 <td><% for(String req:exe.getAssignedTo()) out.print(req+" "); %></td>
+				<%System.out.println(exe.getAssignedTo());%>
+					 <td><% for(String req:exe.getAssignedTo()) {out.print(req);%><br><%} %></td>
                     <td><%= exe.getRequestedBy() %></td>
 					
 					

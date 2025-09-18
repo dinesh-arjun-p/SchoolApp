@@ -9,13 +9,48 @@ import java.sql.*;
 
 public class RuleConditionCheck{
 	
+	public String normalize(String value){
+		if(value==null)
+			return "";
+		return value.toLowerCase().replaceAll("\\s", "");
+	}
+	
+	public String normalize(int value){
+		if(value==0)
+			return "";
+		return String.valueOf(value).toLowerCase().replaceAll("\\s", "");
+	}
+	
 	public boolean RuleIs(String attribute,String value,UserInfo user,String action){
 		
-		System.out.println("Attribute"+attribute+"Action"+action+"Value"+value);
-		if(attribute.equals("role"))
-			return value.toLowerCase().equals(String.valueOf(user.getRole()).toLowerCase());
+		String normalizeValue=normalize(value);
 		if(attribute.equals("action"))
-			return value.toLowerCase().equals(String.valueOf(action).toLowerCase());
+			return normalize(action).equals(normalizeValue);
+		if(attribute.equals("class"))
+			return normalize(user.getClassNo()).equals(normalizeValue);
+		if(attribute.equals("name"))
+			return normalize(user.getName()).equals(normalizeValue);
+		if(attribute.equals("role"))
+			return normalize(user.getRole()).equals(normalizeValue);
+		if(attribute.equals("superior"))
+			return normalize(user.getSuperior()).equals(normalizeValue);
+		
+		return false;
+	}
+	
+	public boolean RuleContains(String attribute,String value,UserInfo user,String action){
+		
+		String normalizeValue=normalize(value);
+		if(attribute.equals("action"))
+			return normalize(action).contains(normalizeValue);
+		if(attribute.equals("class"))
+			return normalize(user.getClassNo()).equals(normalizeValue);
+		if(attribute.equals("name"))
+			return normalize(user.getName()).contains(normalizeValue);
+		if(attribute.equals("role"))
+			return normalize(user.getRole()).contains(normalizeValue);
+		if(attribute.equals("superior"))
+			return normalize(user.getSuperior()).contains(normalizeValue);
 		return false;
 	}
 	
@@ -42,7 +77,7 @@ public class RuleConditionCheck{
 				else if("is not".equals(operator))
 					res=!RuleIs(attribute,value,user,action);
 				else if("contains".equals(operator))
-					res=RuleIs(attribute,value,user,action);
+					res=RuleContains(attribute,value,user,action);
 		
 			
 			
@@ -72,5 +107,6 @@ public class RuleConditionCheck{
 		
 		return recursion(rs.getInt("rule_id"),user,action,1);
 	}
+	
 	
 }

@@ -18,18 +18,15 @@ public class RequestAccess {
 
 
 	public RequestAccess setRequestAccess(ResultSet rs) throws SQLException{
-		DAO dao=new DAO();
-		RequestAccess req = new RequestAccess();
-	    req.setRequestId(rs.getInt("request_id"));
-	    req.setRequestDate(rs.getDate("request_date"));
-	    req.setAction(rs.getString("action"));
-	    req.setRequestedBy(rs.getString("requested_by"));
-	    req.setStatus(rs.getInt("status"));
-		req.setRole(rs.getString("role"));
-		req.setAssignedTo(dao.getAssignedToFunc(rs.getInt("request_id"),rs.getString("role")));
-		req.setActionFor(rs.getString("action_for"));
-		req.setActionValue(rs.getString("action_value"));
-		return req;
+	    this.setRequestId(rs.getInt("request_id"));
+	    this.setRequestDate(rs.getDate("request_date"));
+	    this.setAction(rs.getString("action"));
+	    this.setRequestedBy(rs.getString("requested_by"));
+	    this.setStatus(rs.getInt("status"));
+		this.setRole(rs.getString("role"));
+		this.setActionFor(rs.getString("action_for"));
+		this.setActionValue(rs.getString("action_value"));
+		return this;
 	}
 	
 	

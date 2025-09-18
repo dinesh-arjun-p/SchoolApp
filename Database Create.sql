@@ -64,18 +64,30 @@ CREATE TABLE request_access (
 drop trigger if exists set_default_rule_id;
 DELIMITER $$
 
-
 CREATE TRIGGER set_default_rule_id
 BEFORE DELETE ON rule
 FOR EACH ROW
 BEGIN
+    DECLARE limit_val INT;
+
+    SELECT status_limit 
+    INTO limit_val
+    FROM rule
+    WHERE rule_id = 1;
+
+    -- update request_access with new rule_id and status
     UPDATE request_access
     SET rule_id = 1,
-        status = 0
+        status = 0,
+        role = CASE 
+                   WHEN limit_val = 0 THEN 'executor'
+                   ELSE 'reviewer'
+               END
     WHERE rule_id = OLD.rule_id;
 END$$
 
 DELIMITER ;
+
 
 
 
@@ -180,7 +192,9 @@ select * from request_reviewer;
 select * from rule_work_flow;
 select * from rule;
 select * from rule_condition;
-ALTER TABLE request_access AUTO_INCREMENT = 2;
+select * from attribute;
+
+ALTER TABLE rule AUTO_INCREMENT = 2;
 
 
 

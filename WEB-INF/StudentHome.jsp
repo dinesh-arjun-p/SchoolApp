@@ -95,7 +95,7 @@
             <td><%= r.getRequestDate() %></td>
             <td><%= r.getAction() %></td>
 			<td><%= r.getActionValue() %></td>
-            <td><% if(r.getRole()=="Executer"){out.print("Execution Remaining");}
+            <td><% if(r.getRole().equals("Executer")){out.print("Execution Remaining");}
 					else {out.print(r.getStatus()+" Reviewed");}%></td>
 			
             <td><% for(String req:r.getAssignedTo()) out.print(req+" "); %></td>

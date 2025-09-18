@@ -26,11 +26,13 @@ public class TeacherHomeServlet extends HttpServlet {
         String teacherName = (String) session.getAttribute("uname");
 		String teacherRollNo=(String) session.getAttribute("rollNo");
         DAO dao = new DAO();
+		 List<RequestAccess> requests = dao.getRequestedByStudent((String) session.getAttribute("rollNo"));
         List<RequestAccess> reviewRequests = dao.getReviewRequests(teacherRollNo); 
         
         List<RequestAccess> executeRequests = dao.getExecuteRequests(teacherRollNo); 
 		List<UserInfo> students=dao.getStudentsForTeacher(teacherRollNo);
 		List<Notification> notify = dao.getNotificationsForStudent((String) session.getAttribute("rollNo"));
+		request.setAttribute("requests", requests);
 		request.setAttribute("notifications",notify);
         request.setAttribute("reviewRequests", reviewRequests);
 		request.setAttribute("executeRequests", executeRequests);

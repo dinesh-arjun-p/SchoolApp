@@ -11,14 +11,13 @@ public class Logs {
 	private Time time;
 
 	public Logs setLog(ResultSet rs) throws SQLException{
-		Logs req=new Logs();
-		req.setId(rs.getInt("id"));
-	    req.setUserName(rs.getString("username"));
-	    req.setEvent(rs.getString("event"));
-	    req.setReg(rs.getString("reg"));
-	    req.setDate(rs.getDate("log_date"));
-	    req.setTime(rs.getTime("log_time"));
-		return req;
+		this.setId(rs.getInt("id"));
+	    this.setUserName(rs.getString("username"));
+	    this.setEvent(rs.getString("event"));
+	    this.setReg(rs.getString("reg"));
+	    this.setDate(rs.getDate("log_date"));
+	    this.setTime(rs.getTime("log_time"));
+		return this;
 	}
     // Getters & Setters
     public int getId() {

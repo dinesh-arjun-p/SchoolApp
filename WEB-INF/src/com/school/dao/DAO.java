@@ -22,7 +22,6 @@ public class DAO {
 	String TEACHER_GROUP_ID = "00gvak9np7jMPgp2x697";
 	String STUDENT_GROUP_ID = "00gvakamixXcbpU0D697";
 	
-	
 	public String findRoleName(int roleId){
 		switch(roleId){
 			case 1:
@@ -57,7 +56,6 @@ public class DAO {
 
 	        st.setString(1, uname);
 	        st.setString(2, password);
-	        System.out.println("Hello"); // Debug log
 
 	        try (ResultSet rs = st.executeQuery()) {
 	            return rs.next(); // true if at least one row
@@ -412,16 +410,22 @@ public class DAO {
 	}
 	
 	public int assignToReviewers(int requestId)throws SQLException{
+		String deleteSql="delete from request_reviewer where request_id=?";
 		String insertSql = "INSERT INTO request_reviewer (request_id, reviewer_roll_no,role) " +
                        "SELECT ra.request_id, rwf.incharge,rwf.role " +
                        "FROM request_access ra " +
                        "JOIN rule_work_flow rwf ON ra.rule_id = rwf.rule_id " +
                        "WHERE ra.request_id = ? ";
 
-		try (Connection con = DBUtil.getConnection();
-			PreparedStatement ps = con.prepareStatement(insertSql)) {
+		try (Connection con = DBUtil.getConnection()) {
+			PreparedStatement ps = con.prepareStatement(deleteSql);
 			ps.setInt(1, requestId);
-			return ps.executeUpdate();   
+			ps.executeUpdate();
+			ps=con.prepareStatement(insertSql);
+			ps.setInt(1, requestId);
+			int temp=ps.executeUpdate();   
+			ps.close();
+			return temp;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -454,6 +458,7 @@ public class DAO {
 					try (ResultSet rs = st.getGeneratedKeys()) {
 					if (rs.next()) {
 						assignToReviewers(rs.getInt(1));
+						changeRoleInRequest(rs.getInt(1));
 						return true;
 					}
 				}
@@ -498,8 +503,11 @@ public class DAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    RequestAccess req = new RequestAccess();
-                    requests.add(req.setRequestAccess(rs));
+                    changeRoleInRequest(rs.getInt("request_id"));
+					RequestAccess req = new RequestAccess().setRequestAccess(rs);
+					req.setAssignedTo(getAssignedToFunc(req.getRequestId(),req.getRole()));
+				
+                    requests.add(req);
                 }
             }
 
@@ -520,9 +528,11 @@ public class DAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    RequestAccess req = new RequestAccess();
+                    
 					changeRoleInRequest(rs.getInt("request_id"));
-                    requests.add(req.setRequestAccess(rs));
+					RequestAccess req = new RequestAccess().setRequestAccess(rs);
+					req.setAssignedTo(getAssignedToFunc(req.getRequestId(),req.getRole()));
+                    requests.add(req);
                 }
             }
 
@@ -903,6 +913,7 @@ public class DAO {
             ResultSet rs = psRule.getGeneratedKeys();
             int ruleId = 0;
             if (rs.next()) {
+				
                 return rs.getInt(1);
             }
 			return -1;
@@ -953,6 +964,8 @@ public class DAO {
                 psCondition.setString(5, logic);
                 psCondition.setInt(6, i + 1);
                 psCondition.addBatch();
+				if(logicOps[i] == null || logicOps[i].isEmpty())
+					break;
             }
 
             psCondition.executeBatch();
@@ -962,5 +975,79 @@ public class DAO {
 		catch(Exception e){
 			
 		}
+	}
+	
+	public boolean deleteRule(int ruleId) {
+		String sql1="Select request_id from request_access where rule_id=? ";
+	    String sql = "DELETE FROM rule WHERE rule_id=? ";
+		String max="Select max(rule_id) as maxr from rule";
+	    try (Connection con = DBUtil.getConnection()) {
+			PreparedStatement st = con.prepareStatement(sql1);
+	        st.setInt(1, ruleId);
+	        ResultSet rs=st.executeQuery();
+			st=con.prepareStatement(sql);
+			st.setInt(1,ruleId);
+			int temp=st.executeUpdate();
+			st=con.prepareStatement(max);
+			ResultSet m=st.executeQuery();
+			if(m.next()){
+			String resetSql = "ALTER TABLE rule AUTO_INCREMENT = "+(m.getInt("maxr")+1);
+			Statement alterStmt = con.createStatement();
+			alterStmt.executeUpdate(resetSql);
+			}
+			while(rs.next()){
+				assignToReviewers(rs.getInt("request_id"));
+				
+			}
+			return temp>0;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	
+	public List<Rule> getRules(){
+		
+		List<Rule> rules=new ArrayList<>();
+		String sqlRule = "Select * from rule where priority > 0 order by rule_id ";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement ps=con.prepareStatement(sqlRule)){
+		   ResultSet rs=ps.executeQuery();
+		   while(rs.next()){
+			   Rule r=new Rule().setRule(rs);
+			   r.setCondition(getConditions(r.getRuleId()));
+			   rules.add(r);
+		   }
+
+		}
+		catch(Exception e){
+			  e.printStackTrace();
+		}
+		return rules;
+	}
+	
+	public List<String> getConditions(int ruleId){
+		List<String> conditions=new ArrayList<>();
+		String sqlRule = "Select * from rule_condition where rule_id =? order by order_id";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement ps=con.prepareStatement(sqlRule)){
+           ps.setInt(1,ruleId);
+		   ResultSet rs=ps.executeQuery();
+		   while(rs.next()){
+			   if (rs.getString("logic_op")==null){
+					String condition=rs.getString("attribute")+" "+rs.getString("operator")+" "+rs.getString("value");
+					conditions.add(condition);
+					return conditions;
+			   }
+			   String condition=rs.getString("attribute")+" "+rs.getString("operator")+" "+rs.getString("value")+" "+rs.getString("logic_op");
+				conditions.add(condition);
+			   
+		   }
+
+		}
+		catch(Exception e){
+			  e.printStackTrace();
+		}
+		return conditions;
 	}
 }

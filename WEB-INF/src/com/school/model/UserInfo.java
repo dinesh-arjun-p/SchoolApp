@@ -10,19 +10,20 @@ public class UserInfo {
     private String role;
     private int role_id;
 	private String phone_number;
-	private int className;
+	private int classNo;
+	private String superior;
 	
 	public UserInfo setUserInfo(ResultSet rs)throws SQLException{
-		UserInfo user=new UserInfo();
-		user.setRollNo(rs.getString("roll_no"));
-		user.setName(rs.getString("name"));
-		user.setPass(rs.getString("pass"));
-		user.setRole(rs.getString("role_name"));
-		user.setUserId(rs.getString("userid"));
-		user.setEmail(rs.getString("email"));
-		user.setPhoneNumber(rs.getString("phone_number"));
-		user.setClassName(rs.getInt("class"));
-		return user;
+		this.setRollNo(rs.getString("roll_no"));
+		this.setName(rs.getString("name"));
+		this.setPass(rs.getString("pass"));
+		this.setRole(rs.getString("role_name"));
+		this.setUserId(rs.getString("userid"));
+		this.setEmail(rs.getString("email"));
+		this.setPhoneNumber(rs.getString("phone_number"));
+		this.setClassNo(rs.getInt("class"));
+		this.setSuperior(rs.getString("superior"));
+		return this;
 	}
     // getters & setters
     public String getRollNo() { return rollNo; }
@@ -66,7 +67,10 @@ public class UserInfo {
 	public String getPhoneNumber() { return phone_number; }
     public void setPhoneNumber(String phone_number) { this.phone_number = phone_number; }
 	
-	public int getClassName() { return className; }
-    public void setClassName(int className) { this.className = className; }
+	public int getClassNo() { return classNo; }
+    public void setClassNo(int classNo) { this.classNo = classNo; }
+	
+	public String getSuperior() { return superior; }
+    public void setSuperior(String superior) { this.superior = superior; }
   
 }

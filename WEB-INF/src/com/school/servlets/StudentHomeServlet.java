@@ -30,7 +30,7 @@ public class StudentHomeServlet extends HttpServlet {
 		if (userInfo != null) {
 		        session.setAttribute("uname", userInfo.getName());
 				session.setAttribute("phone_number",userInfo.getPhoneNumber());
-				session.setAttribute("class",userInfo.getClassName());
+				session.setAttribute("class",userInfo.getClassNo());
 		} 
         List<RequestAccess> requests = dao.getRequestedByStudent((String) session.getAttribute("rollNo"));
         List<Notification> notify = dao.getNotificationsForStudent((String) session.getAttribute("rollNo"));

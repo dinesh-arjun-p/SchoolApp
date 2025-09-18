@@ -88,6 +88,43 @@
 
 <br>
 <br>
+
+<h3>Your Requests</h3>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Action</th>
+		<th>Action Value</th>
+        <th>Status</th>
+        <th>Assigned To</th>
+		
+    </tr>
+    <%
+        List<RequestAccess> requests = (List<RequestAccess>) request.getAttribute("requests");
+        if (requests != null && !requests.isEmpty()) {
+            for (RequestAccess r : requests) {
+    %>
+        <tr>
+            <td><%= r.getRequestId() %></td>
+            <td><%= r.getRequestDate() %></td>
+            <td><%= r.getAction() %></td>
+			<td><%= r.getActionValue() %></td>
+            <td><% if(r.getRole().equals("Executer")){out.print("Execution Remaining");}
+					else {out.print(r.getStatus()+" Reviewed");}%></td>
+			
+            <td><% for(String req:r.getAssignedTo()) out.print(req+" "); %></td>
+        </tr>
+    <%
+            }
+        } else {
+    %>
+        <tr><td colspan="5">No requests yet.</td></tr>
+    <%
+        }
+    %>
+</table>
+<br>
     <%
 
         List<RequestAccess> reqs = (List<RequestAccess>) request.getAttribute("reviewRequests");

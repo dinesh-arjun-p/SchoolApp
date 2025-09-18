@@ -8,6 +8,7 @@ import com.school.servlets.*;
 import java.util.*;
 
 public class Audit_LogsDAO {
+	DAO dao=new DAO();
 	public String findRoleName(int roleId){
 		switch(roleId){
 			case 1:
@@ -139,6 +140,39 @@ public class Audit_LogsDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	
+	
+	public void recordCreateRule(int ruleId,String rollNo){
+		
+		String event="Created Rule "+ruleId;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, rollNo);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void recordDeleteRule(int ruleId,String userName){
+		String event="Deleted Rule "+ruleId;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, userName);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
 }

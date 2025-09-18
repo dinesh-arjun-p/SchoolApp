@@ -138,20 +138,6 @@ function checkLogicOp(selectElement) {
 
 
 
-
-function lockCondition(div) {
-    // make inputs readonly
-    div.querySelectorAll("input, select").forEach(el => {
-        if (el.name !== "logic_op") {
-            el.setAttribute("readonly", true);
-            el.setAttribute("disabled", true);
-        } else {
-            el.setAttribute("disabled", true); // lock AND/OR too
-        }
-    });
-}
-
-
 function addCondition() {
     const firstCondition = document.querySelector(".condition"); // template
     const newCondition = firstCondition.cloneNode(true); // deep clone

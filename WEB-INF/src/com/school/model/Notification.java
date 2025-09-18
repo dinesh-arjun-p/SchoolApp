@@ -10,14 +10,13 @@ public class Notification {
     private String request_date;
 
 	public Notification setNotification(ResultSet rs) throws SQLException{
-		Notification n = new Notification();
-		n.setNotificationId(rs.getInt("notify_id"));
-	    n.setStudentRollNo(rs.getString("requested_by"));
-	    n.setAction(rs.getString("action"));
-	    n.setReviewedBy(rs.getString("reviewed_by"));
-	    n.setStatus(rs.getString("status"));
-	    n.setRequestDate(rs.getString("notify_date"));
-		return n;
+		this.setNotificationId(rs.getInt("notify_id"));
+	    this.setStudentRollNo(rs.getString("requested_by"));
+	    this.setAction(rs.getString("action"));
+	    this.setReviewedBy(rs.getString("reviewed_by"));
+	    this.setStatus(rs.getString("status"));
+	    this.setRequestDate(rs.getString("notify_date"));
+		return this;
 	}
     // Getters and setters
     public int getNotificationId() { return notificationId; }

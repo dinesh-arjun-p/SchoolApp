@@ -26,7 +26,8 @@
 <br> Email=<%= session.getAttribute("email") %>
 <br> role_name= <%= session.getAttribute("role") %>
 <br> phone number= <%= session.getAttribute("phone_number") %>
-<br> class= <%= session.getAttribute("class") %></h2>
+<br> class= <%= session.getAttribute("class") %>
+<br> Superior= <%= session.getAttribute("superior") %></h2>
 
 <!-- Request Form -->
 <form action="requestAccess" method="post">

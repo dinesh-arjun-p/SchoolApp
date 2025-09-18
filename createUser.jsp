@@ -36,13 +36,13 @@
 	Class:<input type="text" name="class"><br>
 	Phone Number:<input type="text" name="phone_number"  maxlength="10"><br>
 	 <% 
-       List<UserInfo> superior = (List<UserInfo>) session.getAttribute("superior");
-       if ( superior != null) { 
+       List<UserInfo> superiors = (List<UserInfo>) session.getAttribute("superiors");
+       if ( superiors != null) { 
     %>
         <label for="superior">Select Superior:</label>
         <select name="superior" id="superior">
 			<option value="">-- Select Action --</option>
-            <% for (UserInfo s : superior) { %>
+            <% for (UserInfo s : superiors) { %>
                 <option value="<%=s.getRollNo()%>"><%=s.getRollNo()%></option>
             <% } %>
         </select>

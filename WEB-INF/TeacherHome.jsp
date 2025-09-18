@@ -25,7 +25,13 @@
 	<form action="logout">
     <input type="submit" value="logout">
 	</form>
-    <h2>Welcome Teacher,Hello ${sessionScope.rollNo}</h2>
+<h2>Welcome Teacher, <br>Roll No=<%= session.getAttribute("rollNo") %>
+<br> Name=<%= session.getAttribute("uname") %>
+<br> Email=<%= session.getAttribute("email") %>
+<br> role_name= <%= session.getAttribute("role") %>
+<br> phone number= <%= session.getAttribute("phone_number") %>
+<br> class= <%= session.getAttribute("class") %>
+<br> Superior= <%= session.getAttribute("superior") %></h2>
 
 <form action="requestAccess" method="post">
     <label for="action">Action:</label>

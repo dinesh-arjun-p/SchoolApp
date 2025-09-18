@@ -29,13 +29,13 @@ public class SuperAdminServlet extends HttpServlet {
         List<UserInfo> users = dao.getAllUsers();
 		List<Logs> logs=dao.getAllLogs();
 		List<RequestAccess> requests=dao.getAllRequest();
-		List<UserInfo> superior=dao.getSuperior();
+		List<UserInfo> superiors=dao.getSuperior();
 		List<Rule> rules=dao.getRules();
 		request.setAttribute("logs",logs);
         request.setAttribute("users", users);
 		request.setAttribute("rules",rules);
 		request.setAttribute("requests",requests);
-		session.setAttribute("superior",superior);
+		session.setAttribute("superiors",superiors);
         request.getRequestDispatcher("/WEB-INF/SuperAdminHome.jsp").forward(request, response);
     }
 }

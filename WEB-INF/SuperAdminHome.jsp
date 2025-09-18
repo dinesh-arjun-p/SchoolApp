@@ -47,9 +47,13 @@
     <input type="submit" value="logout">
 </form>
 
-Welcome to Zoho School Mr ${uname} ${rollNo} ${role} ${email}
-<br>
-
+<h2>Welcome Student, <br>Roll No=<%= session.getAttribute("rollNo") %>
+<br> Name=<%= session.getAttribute("uname") %>
+<br> Email=<%= session.getAttribute("email") %>
+<br> role_name= <%= session.getAttribute("role") %>
+<br> phone number= <%= session.getAttribute("phone_number") %>
+<br> class= <%= session.getAttribute("class") %>
+<br> Superior= <%= session.getAttribute("superior") %></h2>
 
 <% if ("Admin".equalsIgnoreCase(role) ) { %>
     <form action="createUser.jsp" method="post" style="display:inline;">

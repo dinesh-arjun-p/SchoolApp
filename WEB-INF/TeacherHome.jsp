@@ -51,7 +51,7 @@
         <select name="action_for" id="student">
 			<option value="">-- Select Action --</option>
             <% for (UserInfo s : students) { %>
-                <option value="<%=s.getRollNo()%>"><%=s.getRollNo()%></option>
+                <option value="<%=s.getRollNo()%>"><%=s%></option>
             <% } %>
         </select>
         <br><br>

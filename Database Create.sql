@@ -28,7 +28,7 @@ create table person(
 );
 insert into person(roll_no,name,pass,email,role_id)
 values('zohoAdmin1','Admin','admin','dinesharjun.ec22@bitsathy.ac.in',1);
-
+select * from person;
 
 
 drop table if exists rule;
@@ -75,7 +75,7 @@ BEGIN
     FROM rule
     WHERE rule_id = 1;
 
-    -- update request_access with new rule_id and status
+
     UPDATE request_access
     SET rule_id = 1,
         status = 0,
@@ -194,7 +194,12 @@ select * from rule;
 select * from rule_condition;
 select * from attribute;
 
-ALTER TABLE rule AUTO_INCREMENT = 2;
+
+ALTER TABLE request_access AUTO_INCREMENT = 1;
+
+
+
+
 
 
 

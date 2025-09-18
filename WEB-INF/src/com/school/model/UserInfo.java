@@ -73,4 +73,8 @@ public class UserInfo {
 	public String getSuperior() { return superior; }
     public void setSuperior(String superior) { this.superior = superior; }
   
+  
+	public String toString(){
+		return "Roll No:"+this.getRollNo()+" Name:"+this.getName();
+	}
 }

@@ -107,6 +107,7 @@
     <tr>
         <th>Rule Id</th>
         <th>Condition</th>
+		<th>Reviewers</th>
         <th>No of Review Needed</th>
         <th>Priority</th>
 		<th>Action</th>
@@ -118,7 +119,8 @@
     %>
     <tr>
         <td><%= r.getRuleId() %></td>
-        <td><% for(String c:r.getCondition()){out.print(c);%><br><% }%><br></td>
+        <td><% for(String c:r.getCondition()){out.print(c);%><br><% }%></td>
+		<td><% for(ReviewerInfo c:r.getReviewers()){out.print(c);%><br><% }%></td>
         <td><%= r.getStatusLimit() %></td>
 		<td><%= r.getPriority() %></td>
         <td>
@@ -169,7 +171,6 @@
                     <td><%= exe.getAction() %></td>
 					<td><%= exe.getActionValue() %></td>
 					<td><%= exe.getActionFor() %></td>
-				<%System.out.println(exe.getAssignedTo());%>
 					 <td><% for(String req:exe.getAssignedTo()) {out.print(req);%><br><%} %></td>
                     <td><%= exe.getRequestedBy() %></td>
 					

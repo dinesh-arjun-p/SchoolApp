@@ -6,6 +6,7 @@ import java.util.*;
 public class Rule {
     private int ruleId;
     private List<String> condition;
+	private List<ReviewerInfo> reviewers;
     private int statusLimit; 
     private int priority;
 
@@ -22,6 +23,12 @@ public class Rule {
     public List<String> getCondition() { return condition; }
     public void setCondition(List<String> condition){ 
 		this.condition=condition;
+		
+	}
+	
+	public List<ReviewerInfo> getReviewers() { return reviewers; }
+    public void setReviewers(List<ReviewerInfo> reviewers){ 
+		this.reviewers=reviewers;
 		
 	}
 

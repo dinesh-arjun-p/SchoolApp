@@ -392,11 +392,12 @@ public class DAO {
 	
 	
 	public int changeRoleInRequest(int requestId) throws SQLException{
-		String sql = "UPDATE request_access ra JOIN rule r ON ra.rule_id = r.rule_id " +
-             "JOIN rule_work_flow rwf ON rwf.rule_id = ra.rule_id " +
-             "SET ra.role = 'Executer' " +
-             "WHERE ra.request_id = ? " +
-             "AND ra.status >= r.status_limit";
+		String sql = "UPDATE request_access ra  "+
+             " JOIN rule r ON ra.rule_id = r.rule_id "+
+             " SET ra.role = 'Executer' "+
+             " WHERE ra.request_id = ? "+ 
+             " AND ra.status >= r.status_limit ";
+
 
 		try (Connection con = DBUtil.getConnection();
 			PreparedStatement ps = con.prepareStatement(sql)) {
@@ -546,7 +547,7 @@ public class DAO {
 	public List<RequestAccess> getReviewRequests(String teacherRollNo) {
 	    List<RequestAccess> requests = new ArrayList<>();
 	    String sql = "SELECT * FROM request_reviewer rr join request_access ra on rr.request_id=ra.request_id and rr.role=ra.role "
-		+"WHERE rr.role = 'Reviewer' and rr.reviewer_roll_no=?";
+		+"WHERE rr.role = 'Reviewer' and rr.reviewer_roll_no=? and decision='Pending'";
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);){
@@ -566,8 +567,13 @@ public class DAO {
 	
 	public List<RequestAccess> getExecuteRequests(String teacherRollNo) {
 	    List<RequestAccess> requests = new ArrayList<>();
-	   String sql = "SELECT * FROM request_reviewer rr join request_access ra on rr.request_id=ra.request_id and rr.role=ra.role "
-		+"WHERE rr.role = 'Executer' and rr.reviewer_roll_no=?";
+	   String sql = "SELECT ra.* FROM request_access ra "+
+				" JOIN request_reviewer rr ON rr.request_id = ra.request_id "+
+				" WHERE rr.reviewer_roll_no = ?  and rr.role='Executer' AND ( ra.role = 'Executer' "+
+				" OR ( (SELECT COUNT(*) FROM request_reviewer rr2 "+
+				" WHERE rr2.request_id = ra.request_id AND rr2.role = 'Reviewer' "+
+               " AND rr2.decision = 'Pending') = 0))";
+          
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);){
@@ -588,8 +594,11 @@ public class DAO {
 	
 	
 	public void setRole(Connection con,int requestId)throws SQLException{
-		String sql = "Update request_access ra join rule r on ra.rule_id=r.rule_id set ra.role='Executer' "+
-		"where request_id=? and ra.status>=r.status_limit" ;
+		String sql = "UPDATE request_access ra  "+
+             " JOIN rule r ON ra.rule_id = r.rule_id "+
+             " SET ra.role = 'Executer' "+
+             " WHERE ra.request_id = ? "+ 
+             " AND ra.status >= r.status_limit ";
 
 	    try (PreparedStatement ps = con.prepareStatement(sql);){
 			 ps.setInt(1,requestId);
@@ -1016,6 +1025,7 @@ public class DAO {
 		   while(rs.next()){
 			   Rule r=new Rule().setRule(rs);
 			   r.setCondition(getConditions(r.getRuleId()));
+			   r.setReviewers(getReviewers(r.getRuleId()));
 			   rules.add(r);
 		   }
 
@@ -1024,6 +1034,26 @@ public class DAO {
 			  e.printStackTrace();
 		}
 		return rules;
+	}
+	
+	public List<ReviewerInfo> getReviewers(int ruleId){
+		List<ReviewerInfo> reviewers=new ArrayList<>();
+		String sqlRule = "Select * from rule_work_flow where rule_id =? ";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement ps=con.prepareStatement(sqlRule)){
+           ps.setInt(1,ruleId);
+		   ResultSet rs=ps.executeQuery();
+		   while(rs.next()){
+			   UserInfo user=getUserByRollNo(rs.getString("incharge"));
+			   ReviewerInfo r=new ReviewerInfo(user,rs.getString("role"));
+			   reviewers.add(r);
+		   }
+
+		}
+		catch(Exception e){
+			  e.printStackTrace();
+		}
+		return reviewers;
 	}
 	
 	public List<String> getConditions(int ruleId){

@@ -1,7 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" isELIgnored="false"%>
 <%@ page import="java.util.*" %>
-<%@ page import="com.school.model.*" %> 
+<%@ page import="com.school.model.*" %>
+<%@ include file="\WEB-INF\Style.jsp" %>
+ 
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,7 +15,7 @@
 	}
 </style>
 </head>
-<body bgcolor="cyan">
+<body >
 <%@ include file="\WEB-INF\Validate.jsp" %>
 	<%
     String role = (String) session.getAttribute("role");

@@ -21,13 +21,7 @@
     <input type="submit" value="logout">
 </form>
 <br>
-<h2>Welcome Student, <br>Roll No=<%= session.getAttribute("rollNo") %>
-<br> Name=<%= session.getAttribute("uname") %>
-<br> Email=<%= session.getAttribute("email") %>
-<br> role_name= <%= session.getAttribute("role") %>
-<br> phone number= <%= session.getAttribute("phone_number") %>
-<br> class= <%= session.getAttribute("class") %>
-<br> Superior= <%= session.getAttribute("superior") %></h2>
+<%@ include file="\WEB-INF\Profile.jsp" %>
 
 <!-- Request Form -->
 <form action="requestAccess" method="post">
@@ -96,7 +90,9 @@
             <td><%= r.getRequestDate() %></td>
             <td><%= r.getAction() %></td>
 			<td><%= r.getActionValue() %></td>
-            <td><% if(r.getRole().equals("Executer")){out.print("Execution Remaining");}
+            <td><% if(r.getState().equals("Executed"))out.print("Executed");
+				else if(r.getState().equals("Rejected"))out.print("Rejected");
+				else if(r.getRole().equals("Executer")){out.print("Execution Remaining");}
 					else {out.print(r.getStatus()+" Reviewed");}%></td>
 			
             <td><% for(String req:r.getAssignedTo()) out.print(req+" "); %></td>

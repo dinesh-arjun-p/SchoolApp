@@ -20,7 +20,7 @@ public class UpdateRequestStatusServlet extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
-
+		String role=(String)session.getAttribute("role");
         String teacherRollNo = (String) session.getAttribute("rollNo");
         int requestId = Integer.parseInt(request.getParameter("requestId"));
         String action = request.getParameter("action"); 
@@ -29,9 +29,9 @@ public class UpdateRequestStatusServlet extends HttpServlet {
 		if(status.equals("Approved"))
 			status="Reviewed";
 		dao.createNotification(requestId,status,teacherRollNo);
-        dao.updateRequestStatus(requestId, action,teacherRollNo);
+        dao.updateRequestStatus(requestId, action,teacherRollNo,role);
 		
 
-        response.sendRedirect("TeacherHomeServlet?msg=Request " + action);
+        response.sendRedirect("Home.jsp?msg=Request " + action);
     }
 }

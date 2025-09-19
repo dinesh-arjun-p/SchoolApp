@@ -14,16 +14,8 @@
 </style>
 </head>
 <body bgcolor="cyan">
-<%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
-    response.setHeader("Pragma", "no-cache");
-    response.setDateHeader("Expires", 0); 
-
-    session = request.getSession(false);
-    if (session == null || session.getAttribute("rollNo") == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
+<%@ include file="\WEB-INF\Validate.jsp" %>
+	<%
     String role = (String) session.getAttribute("role");
     String uname = (String) session.getAttribute("uname");
 	String email = (String) session.getAttribute("email");
@@ -47,14 +39,7 @@
     <input type="submit" value="logout">
 </form>
 
-<h2>Welcome Student, <br>Roll No=<%= session.getAttribute("rollNo") %>
-<br> Name=<%= session.getAttribute("uname") %>
-<br> Email=<%= session.getAttribute("email") %>
-<br> role_name= <%= session.getAttribute("role") %>
-<br> phone number= <%= session.getAttribute("phone_number") %>
-<br> class= <%= session.getAttribute("class") %>
-<br> Superior= <%= session.getAttribute("superior") %></h2>
-
+<%@ include file="\WEB-INF\Profile.jsp" %>
 <% if ("Admin".equalsIgnoreCase(role) ) { %>
     <form action="createUser.jsp" method="post" style="display:inline;">
         <button type="submit">➕ Create New User</button>
@@ -76,6 +61,7 @@
         <th>Roll No</th>
         <th>Name</th>
         <th>Role</th>
+		<th>Superior</th>
         <th>Action</th>
     </tr>
     <%
@@ -87,7 +73,12 @@
         <td><%= u.getRollNo() %></td>
         <td><%= u.getName() %></td>
         <td><%= u.getRole() %></td>
+		<td><%= u.getSuperior()==null?"":u.getSuperior() %></td>
         <td>
+			<form action="CreateUserPageServlet" method="post">
+                <input type="hidden" name="editUser" value="<%= u.getRollNo() %>">
+                <button type="submit">Edit</button>
+            </form>
             <form action="deleteUser" method="post">
                 <input type="hidden" name="rollNo" value="<%= u.getRollNo() %>">
                 <button type="submit">Delete</button>
@@ -100,27 +91,31 @@
     %>
 </table>
 
-
+<%
+        List<Rule> rules = (List<Rule>) request.getAttribute("rules");
+       
+    %>
+	<%  if (rules == null) {out.print("No Rules");}
+		else{ %>
+         
 <h2>All Rules</h2>
-
+ <%  for (Rule r : rules) { %>
 <table style="border: 1px solid black;">
     <tr>
         <th>Rule Id</th>
         <th>Condition</th>
 		<th>Reviewers</th>
+		<th>Executer</th>
         <th>No of Review Needed</th>
         <th>Priority</th>
 		<th>Action</th>
     </tr>
-    <%
-        List<Rule> rules = (List<Rule>) request.getAttribute("rules");
-        if (rules != null) {
-            for (Rule r : rules) {
-    %>
+    
     <tr>
         <td><%= r.getRuleId() %></td>
         <td><% for(String c:r.getCondition()){out.print(c);%><br><% }%></td>
-		<td><% for(ReviewerInfo c:r.getReviewers()){out.print(c);%><br><% }%></td>
+		<td><% for(ReviewerInfo c:r.getReviewers()){%><div><%out.print(c); if(c.getActiveStatus().equals("Deleted"))out.print("(Deleted)");%><div><br><% }%></td>
+		<td><%= r.getExecuter() %></td>
         <td><%= r.getStatusLimit() %></td>
 		<td><%= r.getPriority() %></td>
         <td>
@@ -134,6 +129,7 @@
             }
         }
     %>
+	
 </table>
 
 
@@ -178,7 +174,11 @@
                     <td>
                         <form action="UpdateRequestStatus" method="post" style="display:inline;">
                             <input type="hidden" name="requestId" value="<%= exe.getRequestId() %>">
+							<% if (exe.getRole().equals("Executer")){%>
                             <button type="submit" name="action" value="Executed">Execute</button>
+							<%  } else{%>
+							 <button type="submit" name="action" value="Approved">Review</button>
+							<% } %>
                             <button type="submit" name="action" value="Rejected">Reject</button>
                         </form>
                     </td>

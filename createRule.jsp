@@ -37,7 +37,7 @@
     <input type="number" name="priority" required><br><br>
 
     <!-- Status Limit -->
-    <label>Status Limit:</label>
+    <label>No of Reviewers needed:</label>
     <input type="number" id="statusLimit" name="status_limit" min="0" max="<%= teachers.size() %>" required>
     <br><br>
 

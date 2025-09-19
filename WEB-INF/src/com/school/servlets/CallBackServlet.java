@@ -65,13 +65,11 @@ public class CallBackServlet extends HttpServlet {
             }
             JSONObject tokenResponse = new JSONObject(sb.toString());
 
-            // Get ID Token and decode
             String idToken = tokenResponse.getString("id_token");
             String[] parts = idToken.split("\\.");
             String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
             JSONObject payload = new JSONObject(payloadJson);
 
-            // Extract claims
             String username = payload.optString("preferred_username", payload.optString("sub"));
             JSONArray groups = payload.optJSONArray("groups");
 
@@ -92,7 +90,6 @@ public class CallBackServlet extends HttpServlet {
                 }
             }
 
-            // 2. Save to session
             HttpSession session = request.getSession(true);
 			session.setAttribute("id_token", idToken);
             session.setAttribute("email", username);

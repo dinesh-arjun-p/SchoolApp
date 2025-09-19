@@ -63,6 +63,21 @@ public class UserInfo {
 	}
 	
 	public int getRoleId() { return role_id; }
+	public void setRoleId(int role_id) { 
+		this.role_id = role_id;
+		switch(role_id){
+			case 1:
+				role="Admin";
+				break;
+			case 2:
+				role="Teacher";
+				break;
+			case 3:
+				role="Student";
+				break;
+		}
+		
+	}
 	
 	public String getPhoneNumber() { return phone_number; }
     public void setPhoneNumber(String phone_number) { this.phone_number = phone_number; }

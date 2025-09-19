@@ -51,6 +51,7 @@ CREATE TABLE request_access (
     rule_id INT,
     status INT DEFAULT 0,  -- count of approvals
     role ENUM('Reviewer','Executer') DEFAULT 'Reviewer',
+    state enum('Pending','Executed','Rejected') default 'Pending',
     CONSTRAINT fk_requested_by FOREIGN KEY (requested_by) REFERENCES person(roll_no)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
@@ -61,32 +62,6 @@ CREATE TABLE request_access (
         ON DELETE set null
         ON UPDATE CASCADE
 );
-drop trigger if exists set_default_rule_id;
-DELIMITER $$
-
-CREATE TRIGGER set_default_rule_id
-BEFORE DELETE ON rule
-FOR EACH ROW
-BEGIN
-    DECLARE limit_val INT;
-
-    SELECT status_limit 
-    INTO limit_val
-    FROM rule
-    WHERE rule_id = 1;
-
-
-    UPDATE request_access
-    SET rule_id = 1,
-        status = 0,
-        role = CASE 
-                   WHEN limit_val = 0 THEN 'executor'
-                   ELSE 'reviewer'
-               END
-    WHERE rule_id = OLD.rule_id;
-END$$
-
-DELIMITER ;
 
 
 
@@ -97,12 +72,11 @@ CREATE TABLE request_reviewer (
     reviewer_roll_no VARCHAR(50) NOT NULL,
     decision ENUM('Pending','Approved','Rejected') DEFAULT 'Pending',
     role enum('Reviewer','Executer') ,
+    updated enum('yes','no') default 'yes',
     CONSTRAINT fk_request FOREIGN KEY (request_id) REFERENCES request_access(request_id)
         ON DELETE CASCADE
-        on update cascade,
-    CONSTRAINT fk_reviewer FOREIGN KEY (reviewer_roll_no) REFERENCES person(roll_no)
-        ON DELETE CASCADE
         on update cascade
+    
 );
 
 
@@ -124,20 +98,14 @@ create table rule_work_flow(
 	rule_id int ,
 	incharge varchar(100) ,
     role enum('Reviewer','Executer'),
-    constraint fk_incharge foreign key (incharge) references person (roll_no)
-		on delete cascade
-        on update cascade,
+    active_status enum('Active','Inactive','Deleted')default 'Active',
      constraint fk_rule_id_rule_work_flow foreign key(rule_id) references rule (rule_id)
 		on delete 	cascade
         on update  cascade
 );
-insert into rule_work_flow (rule_id,incharge,role)
-values(1,'zohoTeacher1','Reviewer'),
-(1,'zohoTeacher1','Executer'),
-(2,'zohoTeacher1','Reviewer'),
-(2,'zohoTeacher1','Executer'),
-(3,'zohoTeacher1','Reviewer'),
-(3,'zohoTeacher1','Executer');
+insert into rule_work_flow (rule_id,incharge,role)values
+(1,'zohoTeacher1','Reviewer'),
+(1,'zohoTeacher1','Executer')
 
 
 drop table if exists rule_condition;
@@ -194,10 +162,51 @@ select * from rule;
 select * from rule_condition;
 select * from attribute;
 
+delete from request_access;
 
 ALTER TABLE request_access AUTO_INCREMENT = 1;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+drop trigger if exists set_default_rule_id;
+DELIMITER $$
+
+CREATE TRIGGER set_default_rule_id
+BEFORE DELETE ON rule
+FOR EACH ROW
+BEGIN
+    DECLARE limit_val INT;
+
+    SELECT status_limit 
+    INTO limit_val
+    FROM rule
+    WHERE rule_id = 1;
+
+
+    UPDATE request_access
+    SET rule_id = 1,
+        status = 0,
+        role = CASE 
+                   WHEN limit_val = 0 THEN 'executor'
+                   ELSE 'reviewer'
+               END
+    WHERE rule_id = OLD.rule_id;
+END$$
+
+DELIMITER ;
 
 
 

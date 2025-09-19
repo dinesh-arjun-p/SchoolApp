@@ -14,6 +14,7 @@ public class RequestAccess {
 	private String role;
 	private String actionFor;
 	private String actionValue;
+	private String state;
 	
 
 
@@ -26,6 +27,7 @@ public class RequestAccess {
 		this.setRole(rs.getString("role"));
 		this.setActionFor(rs.getString("action_for"));
 		this.setActionValue(rs.getString("action_value"));
+		this.setState(rs.getString("state"));
 		return this;
 	}
 	
@@ -92,5 +94,13 @@ public class RequestAccess {
     }
     public void setActionValue(String actionValue) {
         this.actionValue = actionValue;
+    }
+	
+	public String getState() {
+        return state;
+    }
+	
+	public void setState(String state) {
+        this.state = state;
     }
 }

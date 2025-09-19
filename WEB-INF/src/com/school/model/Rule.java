@@ -7,6 +7,7 @@ public class Rule {
     private int ruleId;
     private List<String> condition;
 	private List<ReviewerInfo> reviewers;
+	private String executer;
     private int statusLimit; 
     private int priority;
 
@@ -29,6 +30,12 @@ public class Rule {
 	public List<ReviewerInfo> getReviewers() { return reviewers; }
     public void setReviewers(List<ReviewerInfo> reviewers){ 
 		this.reviewers=reviewers;
+		
+	}
+	
+	public String getExecuter() { return executer; }
+    public void setExecuter(String executer){ 
+		this.executer=executer;
 		
 	}
 

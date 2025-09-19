@@ -3,15 +3,17 @@ package com.school.model;
 
 
 public class ReviewerInfo {
-    private UserInfo user;
+    private String user;
     private String role;
+	private String activeStatus;
 
-    public ReviewerInfo(UserInfo user, String role) {
+    public ReviewerInfo(String user, String role,String activeStatus) {
         this.user = user;
         this.role = role;
+		this.activeStatus=activeStatus;
     }
 
-    public UserInfo getUser() {
+    public String getUser() {
         return user;
     }
 
@@ -19,7 +21,11 @@ public class ReviewerInfo {
         return role;
     }
 	
+	public String getActiveStatus() {
+        return activeStatus;
+	}
+	
 	public String toString(){
-		return user+"\n Role:"+role+"\n";
+		return "RollNo:"+user+"\n";
 	}
 }

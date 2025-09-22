@@ -236,7 +236,7 @@ select * from operator;
 select * from attribute_operator;
 select * from attribute_value;
 
-delete from rule;
+delete from request_access;
 
 ALTER TABLE request_access AUTO_INCREMENT = 1;
 
@@ -246,6 +246,7 @@ ALTER TABLE request_access AUTO_INCREMENT = 1;
 
 
 
+SELECT * FROM request_access WHERE rule_id =1  and state='Pending';
 
 
 

@@ -115,12 +115,19 @@
     
     <tr>
         <td><%= r.getRuleId() %></td>
-        <td><% for(String c:r.getCondition()){out.print(c);%><br><% }%></td>
+        <td><% for(Condition c:r.getCondition()){out.print(c);%><br><% }%></td>
 		<td><% for(ReviewerInfo c:r.getReviewers()){%><div><%out.print(c); if(c.getActiveStatus().equals("Deleted"))out.print("(Deleted)");%><div><br><% }%></td>
-		<td><%= r.getExecuter() %></td>
+		<td>
+		<div><%= r.getExecuter()%>
+		<% if(r.getActiveStatus().equals("Deleted")){out.print("(Deleted)");}%><div>
+		</td>
         <td><%= r.getStatusLimit() %></td>
 		<td><%= r.getPriority() %></td>
         <td>
+			<form action="CreateRulePageServlet" method="post">
+                <input type="hidden" name="editRule" value="<%= r.getRuleId() %>">
+                <button type="submit">Edit</button>
+            </form>
             <form action="deleteRule" method="post">
                 <input type="hidden" name="ruleId" value="<%= r.getRuleId() %>">
                 <button type="submit">Delete</button>

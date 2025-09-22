@@ -30,8 +30,13 @@ public class DeleteRuleServlet extends HttpServlet {
         }
 
         int ruleId = Integer.parseInt(request.getParameter("ruleId"));
+		DAO dao = new DAO();
+		if(!dao.canDelete(ruleId)){
+			response.sendRedirect("Home.jsp?error=Rule+cannot+be+Deleted+as+Request+Id+are+open");
+			return ;
+		}
 		String rollNo=(String)session.getAttribute("rollNo");
-        DAO dao = new DAO();
+        
 		Audit_LogsDAO al=new Audit_LogsDAO();
         boolean deleted = dao.deleteRule(ruleId);
 		UserInfo user=dao.getUserByRollNo(rollNo);

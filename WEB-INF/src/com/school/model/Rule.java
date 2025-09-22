@@ -5,9 +5,10 @@ import java.util.*;
 
 public class Rule {
     private int ruleId;
-    private List<String> condition;
+    private List<Condition> condition;
 	private List<ReviewerInfo> reviewers;
 	private String executer;
+	private String activeStatus;
     private int statusLimit; 
     private int priority;
 
@@ -21,8 +22,8 @@ public class Rule {
     public int getRuleId() { return ruleId; }
     public void setRuleId(int ruleId) { this.ruleId = ruleId; }
 
-    public List<String> getCondition() { return condition; }
-    public void setCondition(List<String> condition){ 
+    public List<Condition> getCondition() { return condition; }
+    public void setCondition(List<Condition> condition){ 
 		this.condition=condition;
 		
 	}
@@ -36,6 +37,12 @@ public class Rule {
 	public String getExecuter() { return executer; }
     public void setExecuter(String executer){ 
 		this.executer=executer;
+		
+	}
+	
+	public String getActiveStatus() { return activeStatus; }
+    public void setActiveStatus(String activeStatus){ 
+		this.activeStatus=activeStatus;
 		
 	}
 

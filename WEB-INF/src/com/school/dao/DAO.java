@@ -313,7 +313,10 @@ public class DAO {
 			ps.setString(3, user.getEmail());
 			ps.setInt(4, user.getRoleId());
 			ps.setString(5, user.getPhoneNumber());
-			ps.setString(6, user.getSuperior());
+			if(user.getSuperior()==null||user.getSuperior().equals(""))
+				ps.setNull(6, java.sql.Types.VARCHAR); 
+			else
+				ps.setString(6, user.getSuperior());
 
 			if (user.getClassNo() == 0) {
 				ps.setNull(7, java.sql.Types.VARCHAR); 
@@ -521,11 +524,33 @@ public class DAO {
 			}
 		}
 		catch(Exception e){
-			return 1;
+			return -1;
 		}
-		return 1;
+		return -1;
 	}
 	
+	public Rule getRuleById(int ruleId) {
+    Rule r = null;
+    String sql = "SELECT * FROM rule WHERE rule_id = ?";
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+
+			ps.setInt(1, ruleId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				r = new Rule();
+				r.setRule(rs);
+				r.setCondition(getConditions(r.getRuleId()));
+			    r.setReviewers(getReviewers(r.getRuleId()));
+			    r.setExecuter(getExecuter(r.getRuleId()));
+				r.setActiveStatus(getActiveStatusOfExecuter(r.getRuleId()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return r;
+	}
+
 	
 	public int changeRoleInRequest(int requestId) throws SQLException{
 		String sql = "UPDATE request_access ra  "+
@@ -585,7 +610,12 @@ public class DAO {
 
 				st.setString(1, action);
 				st.setString(2, rollNo);
-				st.setInt(3, rule);
+				if (rule == -1) {
+					st.setNull(3, java.sql.Types.INTEGER);
+				} else {
+					st.setInt(3, rule);
+				}
+					
 				st.setString(4, action_value); 
 				st.setString(5,action_for);
 
@@ -594,9 +624,15 @@ public class DAO {
 				if (affectedRows > 0) {
 					try (ResultSet rs = st.getGeneratedKeys()) {
 					if (rs.next()) {
-						assignToReviewers(rs.getInt(1));
-						changeRoleInRequest(rs.getInt(1));
-						return true;
+						if(rule==-1){
+							executeRequest(rs.getInt(1));
+							return true;
+						}
+						else{
+							assignToReviewers(rs.getInt(1));
+							changeRoleInRequest(rs.getInt(1));
+							return true;
+						}
 					}
 				}
 			}
@@ -768,12 +804,33 @@ public class DAO {
 		setRole(con,requestId);
 	}
 	
-	
+	public boolean executeRequest(int requestId){
+			executeAction(requestId);
+			String executeSQL = "update request_access set state='Executed' where request_id=?";
+			String deleteSQL="delete from request_reviewer where request_id=?";
+			try (Connection con = DBUtil.getConnection()) {
+				con.setAutoCommit(false);
+
+				try (PreparedStatement ps = con.prepareStatement(executeSQL)) {
+					ps.setInt(1, requestId);
+					ps.executeUpdate();
+				}
+				try (PreparedStatement ps = con.prepareStatement(deleteSQL)) {
+					ps.setInt(1, requestId);
+					ps.executeUpdate();
+				}
+				con.commit(); 
+				return true;
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false;
+	}
 	
 	public boolean updateRequestStatus(int requestId, String decision,String teacherRollNo,String role)  {
 		Audit_LogsDAO al=new Audit_LogsDAO();
 		al.recordRequestStatus(teacherRollNo,decision,requestId);
-		
 		if(decision.equals("Approved")){
 			if(role.equals("Admin")){
 				
@@ -838,27 +895,7 @@ public class DAO {
 			return false;
 		}
 		else if(decision.equals("Executed")){
-			executeAction(requestId);
-			String executeSQL = "update request_access set state='Executed' where request_id=?";
-			String deleteSQL="delete from request_reviewer where request_id=?";
-			try (Connection con = DBUtil.getConnection()) {
-				con.setAutoCommit(false);
-
-				try (PreparedStatement ps = con.prepareStatement(executeSQL)) {
-					ps.setInt(1, requestId);
-					ps.executeUpdate();
-				}
-				try (PreparedStatement ps = con.prepareStatement(deleteSQL)) {
-					ps.setInt(1, requestId);
-					ps.executeUpdate();
-				}
-				con.commit(); 
-				return true;
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return false;
+			executeRequest(requestId);
 		}
 		return false;
 	}
@@ -1051,23 +1088,40 @@ public class DAO {
 		return attributes;
 	}
 
-	public List<String> getOperatorsForAttribute(String attribute) {
-		List<String> operators = new ArrayList<>();
-		String sql = "SELECT operator FROM attribute_operator WHERE attribute=?";
-
-		try (Connection con = DBUtil.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-			ps.setString(1, attribute);
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					operators.add(rs.getString("operator"));
-				}
+	public Map<String, List<String>> getAttributeOperators() {
+    Map<String, List<String>> map = new HashMap<>();
+    String sql = "SELECT attribute, attribute_operator FROM attribute_operator";
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            String attr = rs.getString("attribute");
+            String op = rs.getString("attribute_operator");
+            map.computeIfAbsent(attr, k -> new ArrayList<>()).add(op);
         }
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return operators;
-	}
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return map;
+}
+
+public Map<String, List<String>> getAttributeValues() {
+    Map<String, List<String>> map = new HashMap<>();
+    String sql = "SELECT attribute, attribute_value FROM attribute_value";
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            String attr = rs.getString("attribute");
+            String val = rs.getString("attribute_value");
+            map.computeIfAbsent(attr, k -> new ArrayList<>()).add(val);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return map;
+}
+
 	
 	public int createRule(int statusLimit,int priority){
 		String sqlRule = "INSERT INTO rule (status_limit, priority) VALUES (?, ?)";
@@ -1088,6 +1142,204 @@ public class DAO {
 		catch(Exception e){
 			return -1;
 		}
+	}
+	
+	public boolean updateRule(Rule rule){
+		String sql = "UPDATE rule SET priority=?, status_limit=? WHERE rule_id=?";
+    
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setInt(1, rule.getPriority());
+			ps.setInt(2, rule.getStatusLimit());
+			
+			
+			ps.setInt(3, rule.getRuleId());
+
+			int rows = ps.executeUpdate();
+			return rows > 0;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+		
+	}
+	
+	public boolean updateRuleExecuter(int ruleId,String executer){
+		String sql = "UPDATE rule_work_flow SET incharge=?,active_status='Active' WHERE rule_id=? and role='Executer'";
+    
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setString(1, executer);
+			ps.setInt(2, ruleId);
+			
+
+			int rows = ps.executeUpdate();
+			return rows > 0;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public boolean updateRequestExecuter(int ruleId,String executer){
+		String sql = "UPDATE request_reviewer rr join request_access ra on rr.request_id "
+		+"= ra.request_id SET rr.reviewer_roll_no=?,updated='yes' WHERE ra.rule_id=? and rr.role='Executer'";
+    
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setString(1, executer);
+			ps.setInt(2, ruleId);
+			
+
+			int rows = ps.executeUpdate();
+			return rows > 0;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public boolean updateRuleAndRequestExecuter(int ruleId,String executer){
+		boolean temp1=updateRuleExecuter(ruleId,executer);
+		boolean temp2=updateRequestExecuter(ruleId,executer);
+		return temp1 && temp2;
+	}
+	
+	public boolean insertRule(int ruleId,String r){
+		String sql="insert into rule_work_flow (rule_id,incharge,role)values "+
+					" (?,?,'Reviewer') ";
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+				ps.setInt(1,ruleId);
+				ps.setString(2,r);
+				return ps.executeUpdate()>0;
+				
+			}
+		catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean insertReviewer(int ruleId,String r){
+		String sql="insert into request_reviewer (request_id,reviewer_roll_no,role)"+
+					" Select request_id,? ,'Reviewer' from request_access where rule_id=?";
+		try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+				ps.setString(1,r);
+				ps.setInt(2,ruleId);
+				return ps.executeUpdate()>0;
+				
+			}
+		catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean ChangeRule(int ruleId,String[] reviewers){
+		if(reviewers==null)
+				return true;
+		for(String r: reviewers){
+			String sql = "UPDATE rule_work_flow SET active_status='Active' WHERE rule_id=? and incharge=? and role='Reviewer'";
+			int rows=0;
+			try (Connection con = DBUtil.getConnection();
+			PreparedStatement ps = con.prepareStatement(sql)) {
+				
+				ps.setInt(1, ruleId);
+				ps.setString(2, r);
+				
+
+				rows=ps.executeUpdate();
+				if(rows==0)
+					return insertRule(ruleId,r);
+				return true;
+					
+				
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	public boolean ChangeRequestReviewer(int ruleId,String[] reviewers){
+		if(reviewers==null)
+				return true;
+		for(String r: reviewers){
+			String sql = "UPDATE request_reviewer rr join request_access ra on rr.request_id "
+		+"= ra.request_id SET updated='yes' WHERE ra.rule_id=?  and rr.reviewer_roll_no=?"
+		+" and rr.role='Reviewer'";
+			int rows=0;
+			try (Connection con = DBUtil.getConnection();
+				 PreparedStatement ps = con.prepareStatement(sql)) {
+				
+				ps.setInt(1, ruleId);
+				ps.setString(2, r);
+				
+
+				rows=ps.executeUpdate();
+				if(rows==0)
+					return insertReviewer(ruleId,r);
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	
+	public boolean deleteInactive(int ruleId){
+		String sql="delete from rule_work_flow where rule_id=? and active_status='Inactive'";
+		try (Connection con = DBUtil.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+				
+				ps.setInt(1, ruleId);
+				
+
+				ps.executeUpdate();
+				
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+	}
+	
+	public boolean deleteNotUpdated(int ruleId){
+		String sql="delete from request_reviewer   where updated='no' and "
+		+" request_id=any(select request_id from request_access where rule_id=?)" ;
+
+		try (Connection con = DBUtil.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+				
+				ps.setInt(1, ruleId);
+				
+
+				ps.executeUpdate();
+				
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+	}
+	
+	public boolean deleteInactiveAndNotUpdated(int ruleId){
+		return deleteInactive(ruleId)&& deleteNotUpdated(ruleId);
+	}
+	
+	public boolean ChangeReviewers(int ruleId,String[] reviewers){
+		return ChangeRule(ruleId,reviewers) && ChangeRequestReviewer(ruleId,reviewers);
+		
+	}
+	
+	public boolean updateReviewers(int ruleId,String[] reviewers){
+		return ChangeReviewers(ruleId,reviewers)&& deleteInactiveAndNotUpdated(ruleId);
 	}
 	
 	public void createWorkFlow(int ruleId,String [] reviewers,String executer){
@@ -1117,7 +1369,26 @@ public class DAO {
 	}
 	
 	
-	public void createRuleCondition(int ruleId,String [] attributes,String [] operators,String [] values,String [] logicOps){
+	public boolean deleteRuleCondition(int ruleId){
+		
+		String sql = "delete from rule_condition  WHERE rule_id=? ";
+    
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setInt(1, ruleId);
+			
+
+			ps.executeUpdate();
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean createRuleCondition(int ruleId,String [] attributes,String [] operators,String [] values,String [] logicOps){
 		
 		String sqlRule = "INSERT INTO rule_condition (rule_id, attribute, operator, value, logic_op, order_id) VALUES (?, ?, ?, ?, ?, ?)";
 		try(Connection con=DBUtil.getConnection();
@@ -1137,11 +1408,35 @@ public class DAO {
 
             psCondition.executeBatch();
 
-            con.commit();
+			return true;
 		}
 		catch(Exception e){
-			
+			e.printStackTrace();
+			return false;
 		}
+	}
+	
+	public boolean updateRuleCondition(int ruleId,String [] attributes,String [] operators,String [] values,String [] logicOps){
+		return deleteRuleCondition(ruleId)&&
+		createRuleCondition(ruleId,attributes,operators,values,logicOps);
+	}
+	
+	public boolean canDelete(int ruleId){
+		String sql = "SELECT * FROM request_access WHERE rule_id = ? and state='Pending'";
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			 
+			ps.setInt(1, ruleId);
+			
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+					return false;
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	public boolean deleteRule(int ruleId) {
@@ -1185,6 +1480,7 @@ public class DAO {
 			   r.setCondition(getConditions(r.getRuleId()));
 			   r.setReviewers(getReviewers(r.getRuleId()));
 			   r.setExecuter(getExecuter(r.getRuleId()));
+			   r.setActiveStatus(getActiveStatusOfExecuter(r.getRuleId()));
 			   rules.add(r);
 		   }
 
@@ -1203,7 +1499,7 @@ public class DAO {
            ps.setInt(1,ruleId);
 		   ResultSet rs=ps.executeQuery();
 		   while(rs.next()){
-			   ReviewerInfo r=new ReviewerInfo(rs.getString("incharge"),rs.getString("role"),rs.getString("active_status"));
+			   ReviewerInfo r=new ReviewerInfo(rs.getString("incharge"),rs.getString("active_status"));
 			   reviewers.add(r);
 		   }
 
@@ -1231,8 +1527,69 @@ public class DAO {
 		return null;
 	}
 	
-	public List<String> getConditions(int ruleId){
-		List<String> conditions=new ArrayList<>();
+	
+	public void inactiveRuleWorkFlow(int ruleId){
+		
+		String sql = "UPDATE rule_work_flow SET active_status='Inactive' WHERE rule_id=? ";
+    
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setInt(1, ruleId);
+			
+
+			ps.executeUpdate();
+			return;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ;
+	}
+	
+	public void inactiveRequestReviewer(int ruleId){
+		String sql = "UPDATE request_reviewer rr join request_access ra on rr.request_id "
+		+"= ra.request_id SET updated='no' WHERE ra.rule_id=? ";
+		
+		try (Connection con = DBUtil.getConnection();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+			
+			ps.setInt(1, ruleId);
+			
+
+			ps.executeUpdate();
+			return;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ;
+	}
+	
+	public void inactiveRule(int ruleId){
+		inactiveRuleWorkFlow(ruleId);
+		inactiveRequestReviewer(ruleId);
+	}
+	
+	public String getActiveStatusOfExecuter(int ruleId){
+		String sqlRule = "Select * from rule_work_flow where rule_id =? and role='Executer' ";
+		try(Connection con=DBUtil.getConnection();
+		PreparedStatement ps=con.prepareStatement(sqlRule)){
+           ps.setInt(1,ruleId);
+		   ResultSet rs=ps.executeQuery();
+		   while(rs.next()){
+			   return rs.getString("active_status");
+		   }
+
+		}
+		catch(Exception e){
+			  e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public List<Condition> getConditions(int ruleId){
+		List<Condition> conditions=new ArrayList<>();
 		String sqlRule = "Select * from rule_condition where rule_id =? order by order_id";
 		try(Connection con=DBUtil.getConnection();
 		PreparedStatement ps=con.prepareStatement(sqlRule)){
@@ -1240,11 +1597,11 @@ public class DAO {
 		   ResultSet rs=ps.executeQuery();
 		   while(rs.next()){
 			   if (rs.getString("logic_op")==null){
-					String condition=rs.getString("attribute")+" "+rs.getString("operator")+" "+rs.getString("value");
+					Condition condition=new Condition(rs.getString("attribute"),rs.getString("operator"),rs.getString("value"));
 					conditions.add(condition);
 					return conditions;
 			   }
-			   String condition=rs.getString("attribute")+" "+rs.getString("operator")+" "+rs.getString("value")+" "+rs.getString("logic_op");
+			   Condition condition=new Condition(rs.getString("attribute"),rs.getString("operator"),rs.getString("value"),rs.getString("logic_op"));
 				conditions.add(condition);
 			   
 		   }

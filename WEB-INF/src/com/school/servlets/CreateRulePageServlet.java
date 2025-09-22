@@ -10,11 +10,10 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.school.utils.DBUtil;
-import com.school.model.UserInfo;
+import com.school.model.*;
 import com.school.dao.*;
 
 @WebServlet("/CreateRulePageServlet")
@@ -27,8 +26,19 @@ public class CreateRulePageServlet extends HttpServlet {
         List<UserInfo> teachers = dao.getTeacher();
         
 		List<String> attributes = dao.getAllAttributes();
+		Map<String, List<String>> operators = dao.getAttributeOperators();
+		Map<String, List<String>> values = dao.getAttributeValues();
 
         request.setAttribute("attributes", attributes);
+		request.setAttribute("operators", operators);
+		request.setAttribute("values", values);
+		
+		String editRuleIdStr = request.getParameter("editRule");
+        if (editRuleIdStr != null && !editRuleIdStr.isEmpty()) {
+            int editRuleId = Integer.parseInt(editRuleIdStr);
+            Rule rule = dao.getRuleById(editRuleId); 
+            request.setAttribute("editRule", rule);
+        }
         
         request.setAttribute("teachers", teachers);
 

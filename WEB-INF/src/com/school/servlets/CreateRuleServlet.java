@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.*;
 import com.school.dao.*;
 
-@WebServlet("/CreateRuleServlet")
+@WebServlet("/CreateRule")
 public class CreateRuleServlet extends HttpServlet {
 
     @Override
@@ -27,10 +27,10 @@ public class CreateRuleServlet extends HttpServlet {
         int priority = Integer.parseInt(priorityStr);
         int statusLimit = Integer.parseInt(statusLimitStr);
 
-        String[] reviewers = request.getParameterValues("reviewers"); // array of rollNo
+        String[] reviewers = request.getParameterValues("reviewers"); 
         String executer = request.getParameter("executer");
 
-        // Get conditions
+
         String[] attributes = request.getParameterValues("attribute");
         String[] operators = request.getParameterValues("operator");
         String[] values = request.getParameterValues("value");

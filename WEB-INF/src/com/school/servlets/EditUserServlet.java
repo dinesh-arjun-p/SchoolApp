@@ -35,6 +35,7 @@ public class EditUserServlet extends HttpServlet {
 		String phoneNumber=request.getParameter("phone_number");
         int roleId = Integer.parseInt(request.getParameter("role_id"));
 		DAO dao=new DAO();
+		Audit_LogsDAO al=new Audit_LogsDAO();
         UserInfo user=dao.getUserByRollNo(request.getParameter("rollNo"));
 		if(!user.getEmail().equals(email)){
 			dao.updateEmailInOkta(email,user);
@@ -51,11 +52,10 @@ public class EditUserServlet extends HttpServlet {
 		try{
 			boolean success=dao.updateUser(user);
 			if (success) {
-				//al.recordUpdateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() ,roleId);
+				al.recordUpdateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() );
+				al.recordUpdateUser(session.getAttribute("rollNo").toString(),dao.getUserInfo(email).getRollNo() );
 				response.sendRedirect("Home.jsp?msg=User+Updated+successfully");
 			} else {
-				//dao.deleteOktaUser(userId);
-				//dao.deleteUser(email);
 				response.sendRedirect("Home.jsp?error=DB+Update+failed");
 			}
 		}

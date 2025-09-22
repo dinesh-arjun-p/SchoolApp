@@ -174,5 +174,35 @@ public class Audit_LogsDAO {
 	        e.printStackTrace();
 	    }
 	}
+	
+	public void recordUpdateUser(String user,String profile){
+		String event="Edited User "+profile ;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, user);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void recordUpdateRule(String user,int ruleId){
+		String event="Edited Rule "+ruleId ;
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'"+ event+"')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, user);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 }

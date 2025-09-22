@@ -105,7 +105,9 @@ create table rule_work_flow(
 );
 insert into rule_work_flow (rule_id,incharge,role)values
 (1,'zohoTeacher1','Reviewer'),
-(1,'zohoTeacher1','Executer')
+(1,'zohoTeacher1','Executer');
+
+
 
 
 drop table if exists rule_condition;
@@ -144,8 +146,77 @@ drop table if exists attribute;
 create table attribute(
 	attribute varchar(100) primary key
 );
-
 insert into attribute values('action'),('role'),('name'),('superior'),('class');
+drop table if exists operator;
+create table operator(
+	operator varchar(50) primary key
+);
+insert into operator values('is'),('is not'),('contains');
+
+drop table if exists attribute_operator;
+create table attribute_operator(
+	attribute varchar(100) ,
+    attribute_operator varchar(100),
+    constraint fk_attribute_operator_attribute foreign key (attribute) references attribute(attribute)
+    on delete cascade
+    on update cascade,
+    constraint fk_attribute_operator_operator foreign key (attribute_operator) references operator(operator)
+    on delete cascade
+    on update cascade
+);
+insert into attribute_operator  (attribute, attribute_operator)
+select 'action',operator from operator;
+insert into attribute_operator  (attribute, attribute_operator)
+select 'role',operator from operator;
+insert into attribute_operator  (attribute, attribute_operator)
+select 'superior',operator from operator;
+insert into attribute_operator  (attribute, attribute_operator)
+select 'name',operator from operator;
+insert into attribute_operator  (attribute, attribute_operator)
+select 'class',operator from operator where operator <> 'contains';
+
+
+drop table if exists attribute_value;
+create table attribute_value(
+	id int  auto_increment primary key,
+	attribute varchar(100) ,
+    attribute_value varchar(100),
+    constraint fk_attribute_value_attribute foreign key (attribute) references attribute(attribute)
+    on delete cascade
+    on update cascade
+);
+insert into attribute_value (attribute, attribute_value)values('action','changePhoneNumber'),('action','changeClass'),('action','changeName');
+insert into attribute_value (attribute, attribute_value) values ('class','1'),('class','2'),('class','3'),('class','4'),
+('class','5');
+INSERT INTO attribute_value (attribute, attribute_value)
+SELECT 'role', role_name FROM role;
+INSERT INTO attribute_value (attribute, attribute_value)
+SELECT 'name', name FROM person;
+INSERT INTO attribute_value (attribute, attribute_value)
+SELECT 'superior', roll_no FROM person where role_id<3;
+
+
+drop trigger if exists update_name_in_attribute_value;
+DELIMITER $$
+
+CREATE TRIGGER trg_person_after_insert
+AFTER INSERT ON person
+FOR EACH ROW
+BEGIN
+
+    INSERT INTO attribute_value (attribute, attribute_value)
+    VALUES ('name', NEW.name);
+
+
+    IF NEW.role_id < 3 THEN
+        INSERT INTO attribute_value (attribute, attribute_value)
+        VALUES ('superior', NEW.roll_no);
+    END IF;
+END$$
+
+DELIMITER ;
+
+
 
 
 set sql_safe_updates=0;
@@ -161,14 +232,13 @@ select * from rule_work_flow;
 select * from rule;
 select * from rule_condition;
 select * from attribute;
+select * from operator;
+select * from attribute_operator;
+select * from attribute_value;
 
-delete from request_access;
+delete from rule;
 
 ALTER TABLE request_access AUTO_INCREMENT = 1;
-
-
-
-
 
 
 

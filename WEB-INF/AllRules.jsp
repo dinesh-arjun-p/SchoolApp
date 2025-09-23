@@ -21,7 +21,6 @@
         <button type="submit">➕ Create Rule</button>
     </form>
 <% } %>
- <%  for (Rule r : rules) { %>
 <table style="border: 1px solid black;">
     <tr>
         <th>Rule Id</th>
@@ -32,6 +31,8 @@
         <th>Priority</th>
 		<th>Action</th>
     </tr>
+ <%  for (Rule r : rules) { %>
+
     
     <tr>
         <td><%= r.getRuleId() %></td>

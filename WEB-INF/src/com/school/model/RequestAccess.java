@@ -10,7 +10,7 @@ public class RequestAccess {
     private String action;
     private String requestedBy;
     private int status;     
-    private List<String> assignedTo;  
+    private List<AssignedTo> assignedTo;  
 	private String role;
 	private String actionFor;
 	private String actionValue;
@@ -68,10 +68,10 @@ public class RequestAccess {
         this.status = status;
     }
 
-    public List<String> getAssignedTo() {
+    public List<AssignedTo> getAssignedTo() {
         return assignedTo;
     }
-    public void setAssignedTo(List<String> assignedTo) {
+    public void setAssignedTo(List<AssignedTo> assignedTo) {
         this.assignedTo = assignedTo;
     }
 	

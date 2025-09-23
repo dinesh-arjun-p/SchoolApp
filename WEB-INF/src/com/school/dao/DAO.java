@@ -424,6 +424,7 @@ public class DAO {
 	public boolean deleteUser(String rollNo) {
 	    String sql = "DELETE FROM person WHERE roll_no=? or email=?";
 		String sql1="update rule_work_flow set active_status='Deleted' where incharge=?";
+		String sql2="update request_reviewer set updated='no' where reviewer_roll_no=?";
 	    try (Connection con = DBUtil.getConnection()) {
 			PreparedStatement st = con.prepareStatement(sql);
 	        st.setString(1, rollNo);
@@ -431,6 +432,9 @@ public class DAO {
 	        boolean temp= st.executeUpdate() > 0;
 			if(temp){
 				st=con.prepareStatement(sql1);
+				st.setString(1,rollNo);
+				st.executeUpdate();
+				st=con.prepareStatement(sql2);
 				st.setString(1,rollNo);
 				st.executeUpdate();
 			}
@@ -673,9 +677,9 @@ public class DAO {
 	}
 
 	
-	public List<String> getAssignedToFunc(int requestId, String role) {
-		List<String> res = new ArrayList<>();
-		String sql = "SELECT rr.reviewer_roll_no " +
+	public List<AssignedTo> getAssignedToFunc(int requestId, String role) {
+		List<AssignedTo> res = new ArrayList<>();
+		String sql = "SELECT rr.reviewer_roll_no,updated " +
 					"FROM request_reviewer rr " +
 					"WHERE rr.request_id = ? " +
 					"AND rr.role = ? " +
@@ -687,7 +691,8 @@ public class DAO {
 	
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
-					res.add(rs.getString("reviewer_roll_no"));
+					AssignedTo assignedto=new AssignedTo(rs.getString("reviewer_roll_no"),rs.getString("updated"));
+					res.add(assignedto);
 				}
 			}
 		} catch (Exception e) {

@@ -134,13 +134,8 @@ CREATE TABLE audit_logs (
     event VARCHAR(100) NOT NULL,
     reg VARCHAR(100) DEFAULT '',
     log_date DATE NOT NULL DEFAULT (CURRENT_DATE),
-    log_time TIME NOT NULL DEFAULT (CURRENT_TIME),
-    CONSTRAINT fk_user_login_roll_no 
-        FOREIGN KEY (username) REFERENCES person(roll_no)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    log_time TIME NOT NULL DEFAULT (CURRENT_TIME)
 );
-
 
 drop table if exists attribute;
 create table attribute(
@@ -235,6 +230,23 @@ END$$
 
 DELIMITER ;
 
+drop trigger if exists trg_person_after_update;
+DELIMITER $$
+
+CREATE TRIGGER trg_person_after_update
+after update ON person
+FOR EACH ROW
+BEGIN
+	update  attribute_value set
+    attribute_value = new.name
+    WHERE attribute = 'name'
+      AND attribute_value = OLD.name
+    LIMIT 1;
+    
+END$$
+
+DELIMITER ;
+
 
 
 
@@ -242,7 +254,6 @@ set sql_safe_updates=0;
 select * from role;
 select * from person order by role_id;
 select * from audit_logs;
-delete from audit_logs;
 
 select * from request_access;
 select * from request_reviewer;

@@ -10,6 +10,7 @@
     <tr>
         <th>Roll No</th>
         <th>Name</th>
+		<th>Email</th>
         <th>Role</th>
 		<th>Superior</th>
         <th>Action</th>
@@ -22,6 +23,7 @@
     <tr>
         <td><%= u.getRollNo() %></td>
         <td><%= u.getName() %></td>
+		<td><%= u.getEmail() %></td>
         <td><%= u.getRole() %></td>
 		<td><%= u.getSuperior()==null?"":u.getSuperior() %></td>
         <td>

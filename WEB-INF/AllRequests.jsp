@@ -31,7 +31,7 @@
                     <td><%= exe.getAction() %></td>
 					<td><%= exe.getActionValue() %></td>
 					<td><%= exe.getActionFor() %></td>
-					 <td><% for(String req:exe.getAssignedTo()) {out.print(req);%><br><%} %></td>
+					 <td><% for(AssignedTo req:exe.getAssignedTo()) {out.print(req);%><br><%} %></td>
                     <td><%= exe.getRequestedBy() %></td>
 					
 					

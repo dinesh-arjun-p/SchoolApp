@@ -30,7 +30,7 @@
 				else if(r.getRole().equals("Executer")){out.print("Execution Remaining");}
 					else {out.print(r.getStatus()+" Reviewed");}%></td>
 			
-            <td><% for(String req:r.getAssignedTo()) out.print(req+" "); %></td>
+            <td><% for(AssignedTo req:r.getAssignedTo()){ out.print(req); %><br> <% } %></td>
         </tr>
     <%
             }

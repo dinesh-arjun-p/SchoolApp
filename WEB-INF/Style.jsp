@@ -25,6 +25,7 @@ table {
         cursor: pointer;
         font-size: 13px;
     }
+	button[name="action"][value="Executed"],
     button[name="action"][value="Approved"] {
         background-color: #28a745;
         color: white;

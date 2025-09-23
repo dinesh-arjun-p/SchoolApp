@@ -364,7 +364,7 @@ public class DAO {
 	
 	public List<UserInfo> getAllUsers() {
 	    List<UserInfo> users = new ArrayList<>();
-	    String sql = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id";
+	    String sql = "SELECT * FROM person p JOIN role r ON p.role_id = r.role_id order by p.role_id";
 
 	    try (Connection con = (Connection) DBUtil.getConnection();
 	         PreparedStatement st = con.prepareStatement(sql);
@@ -567,6 +567,36 @@ public class DAO {
 		}
 		catch(Exception e){
 			return 0;
+		}
+
+	}
+	
+	public void changeRoleInRequest(Rule rule) throws SQLException{
+		String sql = "UPDATE request_access ra  "+
+             " JOIN rule r ON ra.rule_id = r.rule_id "+
+             " SET ra.role = 'Executer' "+
+             " WHERE ra.rule_id = ? "+ 
+             " AND ra.status >= r.status_limit ";
+		String sql1 = "UPDATE request_access ra  "+
+             " JOIN rule r ON ra.rule_id = r.rule_id "+
+             " SET ra.role = 'Reviewer' "+
+             " WHERE ra.rule_id = ? "+ 
+             " AND ra.status < r.status_limit ";
+
+
+		try (Connection con = DBUtil.getConnection()) {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setInt(1, rule.getRuleId());
+			 ps.executeUpdate(); 
+			 ps = con.prepareStatement(sql1);
+			ps.setInt(1, rule.getRuleId());
+			 ps.executeUpdate(); 
+			 ps.close();
+			return;
+			
+		}
+		catch(Exception e){
+			return ;
 		}
 
 	}
@@ -1157,7 +1187,8 @@ public Map<String, List<String>> getAttributeValues() {
 			ps.setInt(3, rule.getRuleId());
 
 			int rows = ps.executeUpdate();
-			return rows > 0;
+			changeRoleInRequest(rule);
+			return true;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1177,7 +1208,7 @@ public Map<String, List<String>> getAttributeValues() {
 			
 
 			int rows = ps.executeUpdate();
-			return rows > 0;
+			return true;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1197,7 +1228,7 @@ public Map<String, List<String>> getAttributeValues() {
 			
 
 			int rows = ps.executeUpdate();
-			return rows > 0;
+			return true;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1207,6 +1238,7 @@ public Map<String, List<String>> getAttributeValues() {
 	
 	public boolean updateRuleAndRequestExecuter(int ruleId,String executer){
 		boolean temp1=updateRuleExecuter(ruleId,executer);
+
 		boolean temp2=updateRequestExecuter(ruleId,executer);
 		return temp1 && temp2;
 	}

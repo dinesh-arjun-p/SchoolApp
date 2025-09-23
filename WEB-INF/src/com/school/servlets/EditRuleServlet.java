@@ -45,10 +45,14 @@ public class EditRuleServlet extends HttpServlet {
 		rule.setPriority(priority);
 		rule.setStatusLimit(statusLimit);
 		boolean success=dao.updateRuleCondition(ruleId,attributes,operators,values,logicOps);
+
 		success=success&&dao.updateRuleAndRequestExecuter(ruleId,executer);
+
 		success=success&&dao.updateReviewers(ruleId,reviewers);
+
 		try{
 			success=success&&dao.updateRule(rule);
+			System.out.println(success);
 			if (success) {
 				al.recordUpdateRule(session.getAttribute("rollNo").toString(),ruleId);
 				response.sendRedirect("Home.jsp?msg=Rule+Updated+successfully");

@@ -8,7 +8,60 @@
 <head>
 <meta charset="UTF-8">
 <title>Create Rule</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 25px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    form label {
+        display: block;
+        margin: 12px 0 5px;
+        font-weight: bold;
+        color: #555;
+    }
+    form input[type="text"],
+    form input[type="email"],
+    form input[type="password"],
+    form select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 4px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    button[type="submit"]:hover {
+        background-color: #45a049;
+    }
+</style>
+
 </head>
+
 <body>
 	<%
     session = request.getSession(false);
@@ -22,6 +75,7 @@
 	        return;
 	    }
 	%>
+	<div class="container">
 	<%
 	Rule editRule = (Rule) request.getAttribute("editRule");
 	if(editRule==null){
@@ -32,7 +86,6 @@
 <h2>Edit Rule </h2>
 	<% } %>
 <%
-    // Teachers list passed from servlet
     List<UserInfo> teachers = (List<UserInfo>) request.getAttribute("teachers");
 %>
 
@@ -75,88 +128,8 @@
 			<option value="<%= t.getRollNo() %>" <%= selected %> ><%= t.getRollNo() %></option>
 		<% } %>
 	</select>
-
 	
-	<h3>Conditions</h3>
-	<div id="conditions">
-		<% 
-		List<String> attributes=(List<String>)request.getAttribute("attributes");
-	if (editRule != null && editRule.getCondition() != null) {
-		for (int i = 0; i < editRule.getCondition().size(); i++) {
-			Condition c = editRule.getCondition().get(i); // assuming Condition object
-	%>
-	<div class="condition">
-		<label>Attribute:</label>
-		<select name="attribute" onchange="loadOperators(this)" required>
-			<option value="">--Select Attribute--</option>
-			<% for(String attr : attributes) { 
-				   String selected = attr.equals(c.getAttribute()) ? "selected" : "";
-			%>
-				<option value="<%= attr %>" <%= selected %>><%= attr %></option>
-			<% } %>
-		</select><br>
-
-		<label>Operator:</label>
-		<select name="operator" required>
-			<option value="">--Select Operator--</option>
-			<option value="is" <%= "is".equals(c.getOperator()) ? "selected" : "" %>>Is</option>
-			<option value="is not" <%= "is not".equals(c.getOperator()) ? "selected" : "" %>>Is Not</option>
-			<option value="contains" <%= "contains".equals(c.getOperator()) ? "selected" : "" %>>Contains</option>
-		</select><br>
-
-		<label>Value:</label>
-		<input type="text" name="value" value="<%= c.getValue() %>" required><br>
-
-		<label>Logic Op:</label>
-		<select name="logic_op" onchange="checkLogicOp(this)">
-			<option value="">--None--</option>
-			<option value="AND" <%= "AND".equals(c.getLogicOp()) ? "selected" : "" %>>AND</option>
-			<option value="OR" <%= "OR".equals(c.getLogicOp()) ? "selected" : "" %>>OR</option>
-		</select><br><br>
-
-		<button type="button" onclick="deleteCondition(this)">Delete</button><br><br>
-	</div>
-	<% 
-		}
-	} else { 
-	%>
-    <div class="condition">
-        <label>Attribute:</label>
-        <select name="attribute" onchange="loadOperators(this)" required>
-            <option value="">--Select Attribute--</option>
-            <% 
-                for(String attr : attributes) {
-            %>
-                <option value="<%=attr%>"><%=attr%></option>
-            <% } %>
-        </select><br>
- 
-        <label>Operator:</label>
-        <select name="operator" required>
-            <option value="">--Select Operator--</option>
-			<option value="is ">Is</option>
-			<option value="is not">Is Not</option>
-			<option value="contains">Contains</option>
-        </select><br>
-
-      
-			<label>Value:</label>
-			<input type="text" name="value" required><br>
-
-
-        <label>Logic Op:</label>
-			<select name="logic_op" onchange="checkLogicOp(this)">
-				<option value="">--None--</option>
-				<option value="AND">AND</option>
-				<option value="OR">OR</option>
-			</select><br><br>
-			
-			<button type="button" onclick="deleteCondition(this)">Delete</button>
-			<br><br>
-		</div>
-		<% } %>
-	</div>
-
+	<%@ include file="\WEB-INF\RuleCondition.jsp" %>
 
 	
 	<%
@@ -169,7 +142,7 @@
 	<button type="submit">Edit Rule</button>
 	<% } %>
 </form>
-
+</div>
 <script>
 document.querySelector("form").addEventListener("submit", function(e) {
     const statusLimit = parseInt(document.getElementById("statusLimit").value);
@@ -180,61 +153,6 @@ document.querySelector("form").addEventListener("submit", function(e) {
         e.preventDefault();
     }
 });
-
-
-function checkLogicOp(selectElement) {
-    const conditionDiv = selectElement.closest(".condition");
-    const attribute = conditionDiv.querySelector("select[name='attribute']").value.trim();
-    const operator = conditionDiv.querySelector("select[name='operator']").value;
-    const value = conditionDiv.querySelector("input[name='value']").value.trim();
-
-    if ((selectElement.value === "AND" || selectElement.value === "OR") &&
-        (attribute === "" || operator === "" || value === "")) {
-        alert("Please fill Attribute, Operator, and Value before choosing AND/OR.");
-        selectElement.value = ""; // reset selection
-        return;
-    }
-
-  
-    const conditionsContainer = document.getElementById("conditions");
-    if ((selectElement.value === "AND" || selectElement.value === "OR") &&
-        conditionDiv === conditionsContainer.lastElementChild) {
-        addCondition();
-    }
-}
-
-
-
-
-
-
-function addCondition() {
-    const firstCondition = document.querySelector(".condition"); // template
-    const newCondition = firstCondition.cloneNode(true); // deep clone
-    
-    newCondition.querySelectorAll("input, select").forEach(el => {
-        if (el.tagName === "SELECT") {
-            el.selectedIndex = 0; // reset to first option
-        } else {
-            el.value = "";
-        }
-        el.removeAttribute("readonly");
-        el.removeAttribute("disabled");
-    });
-
-    document.getElementById("conditions").appendChild(newCondition);
-}
-
-function deleteCondition(button) {
-    const conditionDiv = button.closest(".condition");
-    const conditionsContainer = document.getElementById("conditions");
-
-    if (conditionsContainer.children.length > 1) {
-        conditionsContainer.removeChild(conditionDiv);
-    } else {
-        alert("At least one condition is required.");
-    }
-}
 
 
 </script>

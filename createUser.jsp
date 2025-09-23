@@ -7,6 +7,57 @@
 <head>
 <meta charset="UTF-8">
 <title>Create User</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 25px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    form label {
+        display: block;
+        margin: 12px 0 5px;
+        font-weight: bold;
+        color: #555;
+    }
+    form input[type="text"],
+    form input[type="email"],
+    form input[type="password"],
+    form select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    form input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 4px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    form input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+</style>
 </head>
 <body>
 	<%
@@ -23,6 +74,7 @@
 	%>
 
 <% UserInfo editUser=(UserInfo)request.getAttribute("editUser"); %>
+<div class="container">
 <h2><%= (editUser == null ? "Create New User" : "Edit User") %></h2>
 
 <form action="<%= (editUser == null ? "createUser" : "updateUser") %>" method="post">
@@ -65,7 +117,7 @@
     <% } %>
 </form>
 
-
+</div>
 	
 </body>
 </html>

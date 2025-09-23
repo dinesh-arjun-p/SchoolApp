@@ -216,6 +216,25 @@ END$$
 
 DELIMITER ;
 
+drop trigger if exists trg_person_after_delete;
+DELIMITER $$
+
+CREATE TRIGGER trg_person_after_delete
+after delete ON person
+FOR EACH ROW
+BEGIN
+	DELETE FROM attribute_value
+    WHERE attribute = 'name'
+      AND attribute_value = OLD.name
+    LIMIT 1;
+    
+    IF old.role_id < 3 THEN
+        delete from attribute_value where attribute='superior' and attribute_value=old.roll_no;
+    END IF;
+END$$
+
+DELIMITER ;
+
 
 
 

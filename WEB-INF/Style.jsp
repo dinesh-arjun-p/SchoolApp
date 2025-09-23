@@ -37,4 +37,9 @@ table {
         font-weight: bold;
         font-size: 15px;
     }
+	p,h2{
+		text-align:center;
+	}
+	
+	
 </style>

@@ -1020,9 +1020,9 @@ public class DAO {
 	
 	
 	
-	public List<Logs> getAllLogs() {
+	public List<Logs> getAllLogs(String order) {
 	    List<Logs> logs = new ArrayList<>();
-	    String sql = "SELECT * FROM audit_logs ORDER BY id DESC";
+	    String sql = "SELECT * FROM audit_logs ORDER BY id "+order;
 
 	    try (Connection con = DBUtil.getConnection();
 	         PreparedStatement ps = con.prepareStatement(sql);

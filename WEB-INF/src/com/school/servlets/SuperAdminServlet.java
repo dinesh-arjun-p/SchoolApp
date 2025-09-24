@@ -27,7 +27,7 @@ public class SuperAdminServlet extends HttpServlet {
         }
         DAO dao = new DAO();
         List<UserInfo> users = dao.getAllUsers();
-		List<Logs> logs=dao.getAllLogs();
+		List<Logs> logs=dao.getAllLogs("desc");
 		List<RequestAccess> requests=dao.getAllRequest();
 		List<UserInfo> superiors=dao.getSuperior();
 		List<Rule> rules=dao.getRules();

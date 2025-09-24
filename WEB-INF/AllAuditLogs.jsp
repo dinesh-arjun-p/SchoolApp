@@ -1,8 +1,13 @@
 
 <h2>All Audit Logs</h2>
-<form action="ClearAuditLogs" method="post" >
+<div style="width:100%;margin:0px -20px 0px +10px">
+<form action="ClearAuditLogs" method="post"  style="display:inline-block;float:left">
                 <button type="submit">clear</button>
             </form>
+<form action="ExportAuditLogs" method="post"  style="display:inline-block;float:right">
+                <button type="submit">Export</button>
+</form>
+</div>
 <table >
     <tr>
         <th>Id</th>

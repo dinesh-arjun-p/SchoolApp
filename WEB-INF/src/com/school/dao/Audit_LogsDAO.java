@@ -204,5 +204,18 @@ public class Audit_LogsDAO {
 	        e.printStackTrace();
 	    }
 	}
+	public void recordExportAuditLogs(String rollNo){
+		String sql = "INSERT INTO audit_logs (username,event) VALUES (?,'Exported Audit Logs')";
+
+	    try (Connection con = (Connection) DBUtil.getConnection();
+	         PreparedStatement st = con.prepareStatement(sql)) {
+
+	        st.setString(1, rollNo);
+	        st.executeUpdate();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 }

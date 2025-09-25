@@ -27,7 +27,14 @@ public class SuperAdminServlet extends HttpServlet {
         }
         DAO dao = new DAO();
         List<UserInfo> users = dao.getAllUsers();
-		List<Logs> logs=dao.getAllLogs("desc");
+		int pageSize=100,pageNumber=1;
+		String pageParam = request.getParameter("page");
+		if (pageParam != null&&!pageParam.isEmpty()) {
+			pageNumber = Integer.parseInt(pageParam);
+		}
+		request.setAttribute("pageNumber",pageNumber);
+		request.setAttribute("totalNoOfPages",dao.getTotalNoOfPages(pageSize));
+		List<Logs> logs=dao.getLogs(pageNumber,pageSize);
 		List<RequestAccess> requests=dao.getAllRequest();
 		List<UserInfo> superiors=dao.getSuperior();
 		List<Rule> rules=dao.getRules();

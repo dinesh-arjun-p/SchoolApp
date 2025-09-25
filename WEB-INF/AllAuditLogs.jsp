@@ -1,6 +1,7 @@
 
+
 <h2>All Audit Logs</h2>
-<div style="width:100%;margin:0px -20px 0px +10px">
+<div style="width:100%">
 <form action="ClearAuditLogs" method="post"  style="display:inline-block;float:left">
                 <button type="submit">clear</button>
             </form>
@@ -35,3 +36,17 @@
         }
     %>
 </table>
+<div style="display:flex; align-items:center; width:100%; position:relative; ">
+<%if ((Integer)request.getAttribute("pageNumber") > 1){%>
+    <a href="Home.jsp?page=${pageNumber - 1}" style="position:absolute; left:0;" >Previous</a>
+<% }%>
+
+<form action="Home.jsp"style="margin:5 auto; text-align:center;">
+Page 
+	<input name="page" value="${pageNumber}" style="width:50px;border:0px"/>
+of ${totalNoOfPages}
+</form>
+<%if ((Integer)request.getAttribute("pageNumber") < (Integer)request.getAttribute("totalNoOfPages")){ %>
+    <a href="Home.jsp?page=${pageNumber + 1}" style="position:absolute; right:0" >Next</a>
+<% } %>
+</div>

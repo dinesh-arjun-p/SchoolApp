@@ -1020,26 +1020,44 @@ public class DAO {
 	
 	
 	
-	public List<Logs> getAllLogs(String order) {
+	public List<Logs> getLogs(int pageNumber,int pageSize) {
 	    List<Logs> logs = new ArrayList<>();
-	    String sql = "SELECT * FROM audit_logs ORDER BY id "+order;
+	    String sql = "SELECT * FROM audit_logs  ORDER BY id desc limit ? offset ?";
+		int offSet=(pageNumber-1)*pageSize;
+	    try (Connection con = DBUtil.getConnection(); 
+	         PreparedStatement ps = con.prepareStatement(sql)){
+			 ps.setInt(1,pageSize);
+			 ps.setInt(2,offSet);
+	        try(ResultSet rs = ps.executeQuery()){
+				while (rs.next()) {
+					Logs req = new Logs();
+					
 
-	    try (Connection con = DBUtil.getConnection();
-	         PreparedStatement ps = con.prepareStatement(sql);
-	         ResultSet rs = ps.executeQuery()) {
-
-	        while (rs.next()) {
-	            Logs req = new Logs();
-				
-
-	            logs.add(req.setLog(rs));
-	        }
-
+					logs.add(req.setLog(rs));
+				}
+			}
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 
 	    return logs;
+	}
+	
+	public int getTotalNoOfPages(int pageSize){
+		int count=0;
+		String sql = "SELECT count(*) FROM audit_logs";
+	    try (Connection con = DBUtil.getConnection(); 
+	         Statement ps = con.createStatement()){
+	        try(ResultSet rs = ps.executeQuery(sql)){
+				if (rs.next()) {
+					count=(int)Math.ceil(rs.getInt(1)*1.0/pageSize);
+				}
+			}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return count;
 	}
 	
 	public List<UserInfo> getSuperior(){

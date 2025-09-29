@@ -107,16 +107,22 @@ public class DAO {
 
 	public String createOktaUser(String name, String email, String password, int roleId) throws Exception {
 		
-		String jsonBody = "{"
-				+ "\"profile\": {"
-				+ "\"email\": \"" + email + "\","
-				+ "\"login\": \"" + email + "\","
-				+ "\"name\": \"" + name + "\""
-				+ "},"
-				+ "\"credentials\": {"
-				+ "\"password\": { \"value\": \"" + password + "\" }"
-				+ "}"
-				+ "}";
+		JSONObject profile = new JSONObject();
+			profile.put("email", email);
+			profile.put("login", email);
+			profile.put("name", name);
+
+			JSONObject passwordObj = new JSONObject();
+			passwordObj.put("value", password);
+
+			JSONObject credentials = new JSONObject();
+			credentials.put("password", passwordObj);
+
+			JSONObject body = new JSONObject();
+			body.put("profile", profile);
+			body.put("credentials", credentials);
+
+			String jsonBody = body.toString();
 
 		URI userUri = new URI(oktaDomain + "/api/v1/users?activate=true");
 		HttpURLConnection conn = (HttpURLConnection) userUri.toURL().openConnection();

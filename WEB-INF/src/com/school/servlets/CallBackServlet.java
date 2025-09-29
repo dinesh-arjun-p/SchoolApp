@@ -31,7 +31,13 @@ public class CallBackServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+		HttpSession session=request.getSession(false);
+		if(session==null ||!session.getAttributeNames().hasMoreElements()){
+		response.sendRedirect("login.jsp");
+		return ;
+		}
+		if((String)session.getAttribute("state")!=null && !request.getParameter("state").equals((String)session.getAttribute("state")))
+			response.sendRedirect("login.jsp?error=Not+Proper+Authentication");
         String code = request.getParameter("code");
         if (code == null || code.isEmpty()) {
             response.sendRedirect("login.jsp?error=Missing+authorization+code");
@@ -39,7 +45,6 @@ public class CallBackServlet extends HttpServlet {
         }
 
         try {
-            // 1. Exchange code for tokens
             URI tokenUri = URI.create(TOKEN_URL);
             URL url = tokenUri.toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -51,8 +56,9 @@ public class CallBackServlet extends HttpServlet {
 
             conn.setRequestProperty("Authorization", basicAuth);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
+			System.out.println(code);
             String body = "grant_type=authorization_code&code=" + code + "&redirect_uri=" + REDIRECT_URI;
+			System.out.println(code);
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
             }
@@ -90,7 +96,6 @@ public class CallBackServlet extends HttpServlet {
                 }
             }
 
-            HttpSession session = request.getSession(true);
 			session.setAttribute("id_token", idToken);
             session.setAttribute("email", username);
             session.setAttribute("role", role);

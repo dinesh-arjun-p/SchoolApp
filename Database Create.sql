@@ -249,11 +249,11 @@ DELIMITER ;
 
 
 
-
+use school;
 set sql_safe_updates=0;
 select * from role;
 select * from person order by role_id;
-select * from audit_logs;
+select * from audit_logs order by id desc;
 
 select * from request_access;
 select * from request_reviewer;

@@ -124,7 +124,7 @@ public class ExportAuditLogsServletTest extends HttpServlet {
 
 		System.out.println("Download duration: " + durationMs + " milliseconds ");
 		Audit_LogsDAO al=new Audit_LogsDAO();
-		al.recordExportAuditLogs((String)session.getAttribute("rollNo"));
+		al.recordExportAuditLogs((String)session.getAttribute("rollNo"),"Pdf");
     }
 	
 	

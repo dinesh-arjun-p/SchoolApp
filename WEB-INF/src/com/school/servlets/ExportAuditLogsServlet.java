@@ -60,15 +60,14 @@ public class ExportAuditLogsServlet extends HttpServlet {
 		PdfWriter pdfWriter=new PdfWriter(response.getOutputStream());
 		PdfDocument pdfDocument=new PdfDocument(pdfWriter);
 		pdfDocument.setDefaultPageSize(PageSize.A4);
-		Document doc=new Document(pdfDocument);
+		Document doc=new Document(pdfDocument);	
+
+
+
+
 		
 		float fullWidth[]=new float[]{720f};
-		
-		
-		
 		Table header=new Table(new float[]{1f});
-		
-		
 		Table tableDivider=new Table(fullWidth);
 		Border gb=new SolidBorder(Color.GRAY,1f/2f);
 		tableDivider.setBorder(gb);
@@ -124,7 +123,7 @@ public class ExportAuditLogsServlet extends HttpServlet {
 
 		System.out.println("Download duration: " + durationMs + " milliseconds ");
 		Audit_LogsDAO al=new Audit_LogsDAO();
-		al.recordExportAuditLogs((String)session.getAttribute("rollNo"));
+		al.recordExportAuditLogs((String)session.getAttribute("rollNo"),"Pdf");
     }
 	
 	

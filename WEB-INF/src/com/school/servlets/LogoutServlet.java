@@ -15,7 +15,7 @@ public class LogoutServlet extends HttpServlet {
     private static final String OKTA_LOGOUT_URL =
         "https://trial-3599609.okta.com/oauth2/default/v1/logout";
     private static final String POST_LOGOUT_REDIRECT =
-        "http://localhost:8080/School/login.jsp"; // must be added in Okta app "Sign-out redirect URIs"
+        "http://localhost:8080/School/login.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -23,20 +23,16 @@ public class LogoutServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         if (session != null) {
-            // Record logout in DB
             String rollNo = (String) session.getAttribute("rollNo");
             if (rollNo != null) {
 				Audit_LogsDAO al=new Audit_LogsDAO();
                 al.recordLogout(rollNo);
             }
 
-            // Fetch ID token (saved in CallbackServlet)
             String idToken = (String) session.getAttribute("id_token");
 
-            // Kill local session
             session.invalidate();
 
-            // Redirect to Okta logout (if token available)
             if (idToken != null) {
                 String logoutUrl = OKTA_LOGOUT_URL
                         + "?id_token_hint=" + idToken
@@ -46,7 +42,6 @@ public class LogoutServlet extends HttpServlet {
             }
         }
 
-        // Fallback → if no session or no token
         response.sendRedirect("login.jsp");
     }
 }

@@ -5,8 +5,9 @@
 <form action="ClearAuditLogs" method="post"  style="display:inline-block;float:left">
                 <button type="submit">clear</button>
             </form>
-<form action="ExportAuditLogs" method="post"  style="display:inline-block;float:right">
-                <button type="submit">Export</button>
+<form method="post"  style="display:inline-block;float:right">
+	<button type="submit" formaction="ExportAuditLogs">Export As Pdf</button>
+    <button type="submit" formaction="ExportAuditLogsAsExcel">Export As Excel</button>
 </form>
 </div>
 <table >
